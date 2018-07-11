@@ -15,3 +15,54 @@ describe('Test Cases for the API end points', () => {
       });
   });
 });
+
+describe('Social login endpoints', () => {
+  it('Google login api should respond with a status of 200', (done) => {
+    chai.request(app)
+      .get('/api/user/google')
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('Facebook login api should respond with a status of 200', (done) => {
+    chai.request(app)
+      .get('/api/user/facebook')
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('Twitter login api should respond with a status of 200', (done) => {
+    chai.request(app)
+      .get('/api/user/twitter')
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('Google redirect without required parameters should throw a 400', (done) => {
+    chai.request(app)
+      .get('/api/user/google/redirect')
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+  it('Facebook redirect should respond with a status of 200', (done) => {
+    chai.request(app)
+      .get('/api/user/facebook/redirect')
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('Twitter redirect should respond with a status of 200', (done) => {
+    chai.request(app)
+      .get('/api/user/twitter/redirect')
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+});
