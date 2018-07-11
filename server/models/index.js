@@ -3,22 +3,17 @@ const path = require('path');
 const Sequelize = require('sequelize');
 
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'Development';
+const env = process.env.NODE_ENV || 'development';
 const config = require('../config/config.js')[env];
 
 const db = {};
 const opts = {
   define: { freezeTableName: true }
 };
-let sequelize;
 
-if (process.env.NODE_ENV === 'production') {
-  sequelize = process.env.DATABASE_URL_PROD;
-} if (process.env.NODE_ENV === 'test') {
-  sequelize = process.env.DATABASE_URL_TEST;
-} else {
-  sequelize = new Sequelize(config.url, opts);
-}
+
+const sequelize = new Sequelize(config.url, opts);
+
 fs
   .readdirSync(__dirname)
   .filter(file => (file.indexOf('.') !== 0)

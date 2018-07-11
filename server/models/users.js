@@ -2,6 +2,14 @@ import bcrypt from 'bcrypt';
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
+    firstname: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
+    lastname: {
+      allowNull: true,
+      type: DataTypes.STRING
+    },
     username: {
       allowNull: false,
       type: DataTypes.STRING
@@ -17,14 +25,15 @@ module.exports = (sequelize, DataTypes) => {
     bio: DataTypes.TEXT,
     imageUrl: DataTypes.STRING,
     isVerified: {
+      defaultValue: false,
       allowNull: false,
       type: DataTypes.BOOLEAN
     },
   });
 
   User.beforeCreate(async (user) => {
-    const salt = await bcrypt.genSalt();
-    return bcrypt.hashSync(user.password, salt);
+    const salt = await bcrypt.genSaltSync();
+    user.password = await bcrypt.hashSync(user.password, salt);
   });
   User.associate = (models) => {
     User.hasMany(models.Article, {

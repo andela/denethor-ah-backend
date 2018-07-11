@@ -4,17 +4,17 @@ dotenv.config();
 
 module.exports = {
   development: {
-    url: process.env.DENETHOR_URL_DEV,
+    url: process.env.DATABASE_URL_DEV,
     dialect: 'postgres',
     operatorsAliases: false
   },
   test: {
-    url: process.env.DENETHOR_URL_TEST,
+    url: process.env.DATABASE_URL,
     dialect: 'postgres',
     operatorsAliases: false
   },
   production: {
-    url: process.env.DENETHOR_URL_PROD,
+    url: process.env.DATABASE_URL,
     dialect: 'postgres',
     operatorsAliases: false
   },

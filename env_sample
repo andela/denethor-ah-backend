@@ -1,0 +1,12 @@
+LOCAL_PORT=/[0-9]{4}/
+DATABASE_URL = postgresql://<username>:<password>@<host>/<databaseName>
+DATABASE_URL_DEV = postgresql://<username>:<password>@<host>/<databaseName>
+GOOGLE_CLIENT_ID=<googleClientId>
+GOOGLE_CLIENT_SECRET=<googleClientSecret>
+FACEBOOK_APP_ID=<facebookAppId>
+FACEBOOK_APP_SECRET=<facebookAppSecret>
+TWITTER_CONSUMER_KEY=<twitterConsumerKey>
+TWITTER_CONSUMER_SECRET=<twitterConsumerKey>
+JWT_SECRET=<...>
+SESS_SECRET=<sessionSecret>
+SENDGRID_KEY=<...>
