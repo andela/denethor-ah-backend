@@ -79,5 +79,8 @@ module.exports = {
         }
       }));
   },
-  down: queryInterface => queryInterface.dropTable('User'),
+  down: async (queryInterface) => {
+    await queryInterface.dropTable('User');
+    queryInterface.dropTable('session');
+  }
 };

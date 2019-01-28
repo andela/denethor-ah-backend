@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import passport from 'passport';
-import { registerUser, verifyUser, socialLogin } from '../controllers/user';
-import registrationValidation from '../middlewares/validation/user';
+import {
+  registerUser, verifyUser, socialLogin, loginUser
+} from '../controllers/user';
+import { registrationValidation, loginValidation } from '../middlewares/validation/user';
 
 const userRouter = Router();
 
 userRouter.post('/', registrationValidation, registerUser);
+userRouter.post('/login', loginValidation, loginUser);
 
 userRouter.patch('/:id', verifyUser);
 userRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

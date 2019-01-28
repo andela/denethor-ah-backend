@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production nodemon --exec babel-node index.js --preset-env",
-    "test": "NODE_ENV=test nyc mocha --require @babel/register tests/**/*.js --timeout 5000 --exit",
+    "test": "export NODE_ENV=test&& npm run migration && nyc mocha --require @babel/register tests/**/*.js --timeout 5000 --exit",
     "lint": "eslint",
     "start:dev": "NODE_ENV=development nodemon --exec babel-node index.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
