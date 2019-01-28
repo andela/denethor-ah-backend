@@ -18,7 +18,6 @@ const { Op } = Sequelize;
 * @param {Object} req - request received
 * @param {Object} res - response object
 * @returns {Object} JSON object (JSend format)
-* @memberof Tokenize
 */
 export const registerUser = async (req, res) => {
   const {
@@ -42,8 +41,10 @@ export const registerUser = async (req, res) => {
       email,
       password,
     });
+    const link = `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}`;
+
     try {
-      await sendVerificationMail(username, email, createdUser.id);
+      await sendVerificationMail(username, email, link);
     } catch (error) {
       logger.debug('Email Error::', error);
     }
@@ -52,7 +53,7 @@ export const registerUser = async (req, res) => {
       status: 'success',
       data: {
         message: `A confirmation email has been sent to ${email}. Click on the confirmation button to verify the account`,
-        link: `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}`
+        link
       },
     });
   } catch (e) {
@@ -63,6 +64,13 @@ export const registerUser = async (req, res) => {
   }
 };
 
+/**
+* @export
+* @function verifyUser
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @returns {Object} JSON object (JSend format)
+*/
 export const verifyUser = async (req, res) => {
   try {
     const { id } = req.params;

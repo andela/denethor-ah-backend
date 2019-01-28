@@ -105,4 +105,94 @@ describe('Tests for article resource', () => {
       expect(body).to.not.have.property('data');
     });
   });
+
+  describe('Tests for liking/disliking Articles', () => {
+    let token;
+    let articleId;
+    const fakeArticleId = 'fakeArticleId';
+    before(async () => {
+      const { body: { data: { token: userToken } } } = await chai.request(app)
+        .post('/api/users/login')
+        .send(user1.logIn);
+
+      token = userToken;
+
+      const { body: { data: { id } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+
+      articleId = id;
+    });
+
+    it('Should return unauthorized when no token is provided', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/likes`);
+      expect(res).to.have.status(401);
+    });
+
+    it('Should return unauthorized when no token is provided', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/dislikes`);
+      expect(res).to.have.status(401);
+    });
+
+    it('Should return server error when fake article id is provided', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${fakeArticleId}/likes`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(res).to.have.status(500);
+    });
+
+    it('Should return server error when fake article id is provided', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${fakeArticleId}/dislikes`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(res).to.have.status(500);
+    });
+
+    it('Should create an impression liking an article ', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/likes`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('impression');
+      expect(impressionMessage).to.eql('You liked this Article!');
+    });
+
+    it('Should update an impression unliking an article ', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/likes`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('impression');
+      expect(impressionMessage).to.eql('You unliked this Article!');
+    });
+
+    it('Should update an impression disliking an article ', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/dislikes`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('impression');
+      expect(impressionMessage).to.eql('You disliked this Article!');
+    });
+
+    it('Should update an impression un-disliking an article ', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/dislikes`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('impression');
+      expect(impressionMessage).to.eql('You un-disliked this Article!');
+    });
+  });
 });
