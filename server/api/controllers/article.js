@@ -1,6 +1,8 @@
 import Sequelize from 'sequelize';
 import { createLogger, format, transports } from 'winston';
-import { Article, LikeDislike, Tag } from '../../models';
+import {
+  Article, LikeDislike, Tag, HighlightComment
+} from '../../models';
 
 const { Op } = Sequelize;
 
@@ -42,9 +44,15 @@ const insertTag = async (tagArray) => {
 * @returns {Object} JSON object (JSend format)
 */
 export const createArticle = async (req, res) => {
-  try { 
-    const { body: { slug, description, body, references, categoryId } , user: { id: userId } } = req;
-    const newArticle = await Article.create({ slug, description, body, references, categoryId, authorId: userId });
+  try {
+    const {
+      body: {
+        slug, description, body, references, categoryId
+      }, user: { id: userId }
+    } = req;
+    const newArticle = await Article.create({
+      slug, description, body, references, categoryId, authorId: userId
+    });
 
     if (req.body.tags) {
       const newArticleTags = req.body.tags;
@@ -149,7 +157,7 @@ export const dislikeArticle = async (req, res) => {
         userId,
         dislike: true
       });
-      return res.status(200).send({
+      return res.status(201).send({
         status: 'success',
         data: {
           message: 'You disliked this Article!',
@@ -181,6 +189,80 @@ export const dislikeArticle = async (req, res) => {
         }
       });
     }
+  } catch (e) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occured.'
+    });
+  }
+};
+
+/**
+  * @export
+  * @function createHighlight
+  * @param {Object} req - request received
+  * @param {Object} res - response object
+  * @returns {Object} JSON object (JSend format)
+  */
+export const createHighlight = async (req, res) => {
+  try {
+    const { params: { id: articleId }, user: { id: readerId }, body: { highlight, comment } } = req;
+    const newHighlight = await HighlightComment.create({
+      articleId,
+      readerId,
+      highlight,
+      comment
+    });
+
+    return res.status(201).send({
+      status: 'success',
+      data: {
+        message: 'You highlighted successfully!',
+        highlight: newHighlight
+      }
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occured.'
+    });
+  }
+};
+
+/**
+  * @export
+  * @function getHighlights
+  * @param {Object} req - request received
+  * @param {Object} res - response object
+  * @returns {Object} JSON object (JSend format)
+  */
+export const getHighlights = async (req, res) => {
+  try {
+    const { params: { id: articleId }, user: { id: readerId } } = req;
+    const foundHighlights = await HighlightComment.findAll({
+      attributes: ['articleId', 'readerId', 'highlight', 'comment'],
+      where: {
+        articleId: { [Op.eq]: articleId },
+        readerId: { [Op.eq]: readerId }
+      }
+    });
+
+    if (!foundHighlights.length) {
+      return res.status(404).send({
+        status: 'fail',
+        data: {
+          message: 'No highlight was found',
+        }
+      });
+    }
+
+    return res.status(200).send({
+      status: 'success',
+      data: {
+        message: 'You highlighted this Article!',
+        highlights: foundHighlights
+      }
+    });
   } catch (e) {
     return res.status(500).send({
       status: 'error',

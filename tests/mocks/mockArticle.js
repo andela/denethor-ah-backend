@@ -11,3 +11,13 @@ export const invalidArticle = {
   description: 'The girl named Princess fell from the skies and just disappeared',
   references: ['princess.com', 'example.com'],
 };
+
+export const mockHighlight = {
+  highlight: 'Mock Highlight',
+  comment: 'Mock Comment'
+};
+
+export const InvalidHighlight = {
+  highlight: '',
+  comment: 'Mock Comment'
+};

@@ -3,7 +3,9 @@ import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
 import { user1 } from '../mocks/mockUsers';
-import { mockArticle, invalidArticle } from '../mocks/mockArticle';
+import {
+  mockArticle, invalidArticle, mockHighlight, InvalidHighlight
+} from '../mocks/mockArticle';
 import mockCategory from '../mocks/mockCategory';
 import { comment, longComment } from '../mocks/mockComments';
 import mockRoles from '../mocks/mockRoles';
@@ -111,6 +113,7 @@ describe('Tests for article resource', () => {
   describe('Tests for liking/disliking Articles', () => {
     let token;
     let articleId;
+    let articleId2;
     const fakeArticleId = 'fakeArticleId';
     before(async () => {
       const { body: { data: { token: userToken } } } = await chai.request(app)
@@ -125,6 +128,13 @@ describe('Tests for article resource', () => {
         .send(mockArticle);
 
       articleId = id;
+
+      const { body: { data: { id: newId } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+
+      articleId2 = newId;
     });
 
     it('Should return unauthorized when no token is provided', async () => {
@@ -175,6 +185,28 @@ describe('Tests for article resource', () => {
       expect(impressionMessage).to.eql('You unliked this Article!');
     });
 
+    it('Should create an impression liking an article ', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/likes`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('impression');
+      expect(impressionMessage).to.eql('You liked this Article!');
+    });
+
+    it('Should create impression disliking an article ', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId2}/dislikes`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
+      expect(res).to.have.status(201);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('impression');
+      expect(impressionMessage).to.eql('You disliked this Article!');
+    });
+
     it('Should update an impression disliking an article ', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${articleId}/dislikes`)
@@ -195,6 +227,111 @@ describe('Tests for article resource', () => {
       expect(body).to.have.property('data');
       expect(data).to.have.property('impression');
       expect(impressionMessage).to.eql('You un-disliked this Article!');
+    });
+  });
+
+  describe('Tests for highlighting and commenting  Articles', () => {
+    let token;
+    let articleId;
+    let articleId2;
+    const fakeArticleId = 'fakeArticleId';
+    before(async () => {
+      const { body: { data: { token: userToken } } } = await chai.request(app)
+        .post('/api/users/login')
+        .send(user1.logIn);
+
+      token = userToken;
+
+      const { body: { data: { id } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+
+      articleId = id;
+
+      const { body: { data: { id: newId } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+
+      articleId2 = newId;
+    });
+
+    it('Should return unauthorized when no token is provided', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${articleId}/highlights`);
+      expect(res).to.have.status(401);
+    });
+
+    it('Should return unauthorized when no token is provided', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId}/highlights`);
+      expect(res).to.have.status(401);
+    });
+
+    it('Should return server error when fake article id is provided', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${fakeArticleId}/highlights`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(mockHighlight);
+      const { body: { status }, body } = res;
+      expect(res).to.have.status(500);
+      expect(body).to.have.property('message');
+      expect(status).to.eql('error');
+    });
+
+    it('Should return server error when fake article id is provided', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${fakeArticleId}/highlights`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body: { status }, body } = res;
+      expect(res).to.have.status(500);
+      expect(body).to.have.property('message');
+      expect(status).to.eql('error');
+    });
+
+    it('Should create an entry of highlight and comment of an Article', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${articleId}/highlights`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(mockHighlight);
+      const { body, body: { data }, body: { data: { message } } } = res;
+      expect(res).to.have.status(201);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('highlight');
+      expect(message).to.eql('You highlighted successfully!');
+    });
+
+    it('Should return an input error for highlight and comment of an Article', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${articleId}/highlights`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(InvalidHighlight);
+      const { body: { status, data } } = res;
+      expect(res).to.have.status(422);
+      expect(data).to.have.property('input');
+      expect(status).to.eql('fail');
+    });
+
+    it('Should return a highlight for an Article', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId}/highlights`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body, body: { data }, body: { data: { message } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('highlights');
+      expect(message).to.eql('You highlighted this Article!');
+    });
+
+    it('Should return no highlights for an Article', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId2}/highlights`)
+        .set('Authorization', `Bearer ${token}`);
+      const { body: { status }, body: { data } } = res;
+      expect(res).to.have.status(404);
+      expect(data).to.have.property('message');
+      expect(status).to.eql('fail');
     });
   });
 });
