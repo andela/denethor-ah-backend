@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
@@ -10,7 +13,6 @@ const db = {};
 const opts = {
   define: { freezeTableName: true }
 };
-
 
 const sequelize = new Sequelize(config.url, opts);
 
