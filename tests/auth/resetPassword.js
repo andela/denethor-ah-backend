@@ -10,7 +10,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
   const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5Yjc3ZmZlNS1hMTJkLTQ0YmYtYTllOC0zZmIzZGNkMmYwMWEiLCJlbWFpbCI6Im95ZWRlamlwZWFjZUB5YWhvby5jb20iLCJpYXQiOjE1NDk1NDQwNTcsImV4cCI6MTU0OTU0NzY1N30.eLlfTWIHiNoNIgREBKkVTak4aKDTZqKqNllM72pkiv8';
   let userToken;
   const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6I66iMmU3MDAwLWE3MjEtNDY1OS1hMjRiLTg1M2RlNDk4ZDBjOSIsImVtYWlsIjoicHJpbmNlc3M2M0BleGFtcGxlLmNvbSIsImlhdCI6MTU0OTY1MDgzNywiZXhwIjoxNTQ5NzM3MjM3fQ.1B1I2tlmJzGBdiAmY9R_6tPdRrBXHkdW2wOYUSZ0Gbk';
-  const userToken2 = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im95ZWRlamlwZWFjZUB5YWhvby5jb20iLCJpYXQiOjE1NDk3NDU3NDAsImV4cCI6MTU0OTgzMjE0MH0.PucUV7V5Y7cIajFS7cov_VzQ6L2m07tVaVxAuuHzZyY';
+  const userToken2 = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImdiZWR1LWVudGVyLWJvZHkiLCJlbWFpbCI6IkpvaG4uRG9lQHRlc3QuY29tIn0.Ais-G2th51qOUxx2_1cS3FMANgpK1XahwzB2OlACxUo';
 
   before(async () => {
     const { body: { data: { link } } } = await chai.request(app)
