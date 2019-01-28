@@ -1,4 +1,4 @@
-const verifyTemplate = (username, id) => `
+const verifyTemplate = (username, url) => `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 
@@ -79,7 +79,7 @@ const verifyTemplate = (username, id) => `
                               </tr>
                               <tr>
                                 <td valign="top" width="48%" align="center"> <span>
-                                    <a href="https://localhost:8000/api/users/${id}" style="display:block; padding:15px 25px; background-color:#0087D1; color:#ffffff; border-radius:3px; text-decoration:none;">Verify
+                                    <a href="${url}" style="display:block; padding:15px 25px; background-color:#0087D1; color:#ffffff; border-radius:3px; text-decoration:none;">Verify
                                       Email Address</a>
                                   </span>
                                 </td>
