@@ -12,15 +12,15 @@ sgMail.setApiKey(process.env.SENDGRID_KEY);
   * @function sendVerificationMail
   * @param {Object} username - created User's username
   * @param {Object} email - created User's email
-  * @param {Object} id - created User's ID
+  * @param {Object} url - created User's ID
   * @returns {null} null
   */
-const sendVerificationMail = (username, email, id) => {
+const sendVerificationMail = (username, email, url) => {
   const msg = {
     to: email,
     from: 'support@authors-haven.com',
     subject: '[Author\'s Haven] Email Verification',
-    html: verifyTemplate(username, id),
+    html: verifyTemplate(username, url),
   };
   return sgMail.send(msg);
 };

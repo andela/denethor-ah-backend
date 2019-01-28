@@ -18,6 +18,5 @@ export const signToken = (payload, exp = '24h') => jwt.sign(payload, secret, { e
  * @function verifyToken
  * @param {Object} token - JWT token
  * @returns {string} Payload
- * @memberof Tokenize
  */
 export const verifyToken = token => jwt.verify(token, secret);
