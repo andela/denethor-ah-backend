@@ -1,6 +1,10 @@
 language: node_js
 
 node_js:
+<<<<<<< HEAD
   - "11.6.0"
 
 after_success: npm run coverage
+=======
+  - "11.6.0"
+>>>>>>> chore(ci): configure .travis.yml
