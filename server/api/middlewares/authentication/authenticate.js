@@ -9,7 +9,6 @@ import { User } from '../../../models';
 
 env.config();
 
-
 const options = {
   secretOrKey: process.env.JWT_SECRET,
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

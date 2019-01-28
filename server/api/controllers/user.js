@@ -1,8 +1,14 @@
 import Sequelize from 'sequelize';
-
+import { createLogger, format, transports } from 'winston';
 import { signToken } from '../helpers/tokenization/tokenize';
 import { User } from '../../models';
 import sendVerificationMail from '../helpers/mailer/mailer';
+
+const logger = createLogger({
+  level: 'debug',
+  format: format.simple(),
+  transports: [new transports.Console()]
+});
 
 const { Op } = Sequelize;
 
@@ -37,7 +43,11 @@ export const registerUser = async (req, res) => {
       password,
     });
 
-    await sendVerificationMail(username, email, createdUser.id);
+    try {
+      await sendVerificationMail(username, email, createdUser.id);
+    } catch (error) {
+      logger.debug('Email Error::', error);
+    }
 
     return res.status(200).send({
       status: 'success',
@@ -140,5 +150,46 @@ export const logout = (req, res) => {
   return res.status(200).send({
     status: 'success',
     message: 'You successfully logged out'
+  });
+};
+
+/**
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} response object
+ */
+export const loginUser = async (req, res) => {
+  const userCredentials = req.body;
+  const { email, password } = userCredentials;
+
+  // Check if the user exists in the database
+  const foundUser = await User.findOne({ where: { email: { [Op.eq]: email } } });
+
+  if (!foundUser) {
+    return res.status(401).json({
+      status: 'fail',
+      message: 'Provide correct login credentials',
+    });
+  }
+
+  if (!User.passwordMatch(foundUser.password, password)) {
+    return res.status(401).json({
+      status: 'fail',
+      message: 'Provide correct login credentials',
+    });
+  }
+
+  const token = signToken({
+    userId: foundUser.id,
+    email,
+  });
+
+  return res.status(200).send({
+    status: 'success',
+    data: {
+      userId: foundUser.id,
+      email,
+      token
+    }
   });
 };

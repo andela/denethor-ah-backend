@@ -20,7 +20,7 @@ const password = Joi.string().trim().strict().alphanum()
   .max(40)
   .required();
 
-const registrationSchema = {
+const registrationRequestSchema = {
   firstname,
   lastname,
   username,
@@ -28,4 +28,9 @@ const registrationSchema = {
   password,
 };
 
-export default registrationSchema;
+const loginRequestSchema = {
+  email,
+  password,
+};
+
+export { loginRequestSchema, registrationRequestSchema };

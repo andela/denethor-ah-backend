@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-import registrationRequestSchema from './schemas/user';
+import { registrationRequestSchema, loginRequestSchema } from './schemas/user';
 
 /**
 * @export
@@ -10,7 +10,7 @@ import registrationRequestSchema from './schemas/user';
 * @param {Object} next - next object
 * @returns {Object} next object
 */
-const registrationValidation = (req, res, next) => {
+export const registrationValidation = (req, res, next) => {
   Joi.validate(req.body, registrationRequestSchema)
     .then(() => next())
     .catch(error => res.status(422).send({
@@ -21,4 +21,21 @@ const registrationValidation = (req, res, next) => {
     }));
 };
 
-export default registrationValidation;
+/**
+* @export
+* @function loginValidation
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @param {Object} next - next object
+* @returns {Object} next object
+*/
+export const loginValidation = (req, res, next) => {
+  Joi.validate(req.body, loginRequestSchema)
+    .then(() => next())
+    .catch(error => res.status(422).send({
+      status: 'fail',
+      data: {
+        input: error.details[0].message,
+      }
+    }));
+};
