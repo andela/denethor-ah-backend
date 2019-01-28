@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 # Authors Haven - A Social platform for the creative at heart.
 
 [![Build Status](https://travis-ci.org/andela/denethor-ah-backend.svg?branch=master)](https://travis-ci.org/andela/denethor-ah-backend) [![Reviewed by Hound](https://img.shields.io/badge/Reviewed_by-Hound-8E64B0.svg)](https://houndci.com) [![Coverage Status](https://coveralls.io/repos/github/andela/denethor-ah-backend/badge.svg?branch=master)](https://coveralls.io/github/andela/denethor-ah-backend?branch=master)
+=======
+[![Build Status](https://travis-ci.org/andela/denethor-ah-backend.svg?branch=master)](https://travis-ci.org/andela/denethor-ah-backend)
+
+Authors Haven - A Social platform for the creative at heart.
+=======
+>>>>>>> chore(ci): add travis badge to readme
 
 [![Reviewed by Hound](https://img.shields.io/badge/Reviewed_by-Hound-8E64B0.svg)](https://houndci.com)
 

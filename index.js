@@ -7,9 +7,9 @@ import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
 
 const logger = createLogger({
-    level: 'debug',
-    format: format.simple(),
-    transports: [new transports.Console()]
+  level: 'debug',
+  format: format.simple(),
+  transports: [new transports.Console()]
 });
 
 dotenv.config();
@@ -31,21 +31,21 @@ app.use(require('method-override')());
 app.use(express.static(`${__dirname}/public`));
 
 app.use(
-    session({
-        secret: 'authorshaven',
-        cookie: { maxAge: 60000 },
-        resave: false,
-        saveUninitialized: false
-    })
+  session({
+    secret: 'authorshaven',
+    cookie: { maxAge: 60000 },
+    resave: false,
+    saveUninitialized: false
+  })
 );
 
 app.get('/', (req, res) => res.status(200).send({
-    status: 'connection successful',
-    message: 'Welcome to Author Haven!',
+  status: 'connection successful',
+  message: 'Welcome to Author Haven!',
 }));
 
 app.listen(port, () => {
-    logger.debug(`Server running on port ${chalk.blue(port)}`);
+  logger.debug(`Server running on port ${chalk.blue(port)}`);
 });
 
 export default app;
