@@ -39,6 +39,11 @@ app.get('/', (req, res) => res.status(200).send({
   message: 'Welcome to Author Haven!',
 }));
 
+app.get('*', (req, res) => res.status(200).send({
+  status: 'fail',
+  message: 'Route not found',
+}));
+
 app.listen(port, function serverListner() {
   logger.debug(`Server running on port ${chalk.blue(port)}`);
 });
