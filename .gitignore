@@ -37,6 +37,11 @@ node_modules
 # Enviromental 
 .env
 
+<<<<<<< HEAD
 # Coveralls and Coverage folder
 .coveralls.yml
 .nyc_output
+=======
+# Coveralls
+.coveralls.yaml
+>>>>>>> chore(coverage): integrate coveralls
