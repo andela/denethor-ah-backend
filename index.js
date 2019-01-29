@@ -9,6 +9,9 @@ const fs = require("fs"),
     passport = require("passport"),
     errorhandler = require("errorhandler"),
     mongoose = require("mongoose");
+    import dotenv from 'dotenv';
+
+dotenv.config();
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -34,23 +37,30 @@ app.use(
     })
 );
 
-if (!isProduction) {
-    app.use(errorhandler());
-}
+// if (!isProduction) {
+//     app.use(errorhandler());
+// }
 
-if (isProduction) {
-    mongoose.connect(process.env.MONGODB_URI);
-} else {
-    mongoose.connect("mongodb://localhost/conduit");
-    mongoose.set("debug", true);
-}
+// if (isProduction) {
+//     mongoose.connect(process.env.MONGODB_URI);
+// } else {
+//     mongoose.connect("mongodb://localhost/conduit");
+//     mongoose.set("debug", true);
+// }
+
 
 require("./models/User");
 
 app.use(require("./routes"));
 
+app.get('/', (req, res) => res.status(200).send({
+    status: 'connection successful',
+    message: 'Welcome to Author Haven!',
+  }));
+  
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {
+    console.log('yea');
     const err = new Error("Not Found");
     err.status = 404;
     next(err);
@@ -60,24 +70,25 @@ app.use(function(req, res, next) {
 
 // development error handler
 // will print stacktrace
-if (!isProduction) {
-    app.use(function(err, req, res, next) {
-        console.log(err.stack);
+// if (!isProduction) {
+//     app.use(function(err, req, res, next) {
+//         console.log(err.stack);
 
-        res.status(err.status || 500);
+//         res.status(err.status || 500);
 
-        res.json({
-            errors: {
-                message: err.message,
-                error: err
-            }
-        });
-    });
-}
+//         res.json({
+//             errors: {
+//                 message: err.message,
+//                 error: err
+//             }
+//         });
+//     });
+// }
 
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
+    console.log('yeah naby');
     res.status(err.status || 500);
     res.json({
         errors: {
