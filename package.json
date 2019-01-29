@@ -4,10 +4,10 @@
   "description": "A Social platform for the creative at heart",
   "main": "index.js",
   "scripts": {
-    "test": "PORT=3001 mocha --require @babel/register tests/**/*.js --exit",
+    "test": "PORT=3001 nyc mocha --require @babel/register tests/**/*.js --exit",
     "lint": "eslint",
     "start:dev": "NODE_ENV=development nodemon --exec babel-node index.js --preset-env",
-    "coverage": "nyc npm test && nyc report --reporter=lcov --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "author": "Andela Simulations Programme",
   "license": "MIT",
