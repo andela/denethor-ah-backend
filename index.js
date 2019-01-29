@@ -3,10 +3,18 @@ import bodyParser from 'body-parser';
 import session from 'express-session';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import chalk from 'chalk';
+import { createLogger, format, transports } from 'winston';
+
+const logger = createLogger({
+  level: 'debug',
+  format: format.simple(),
+  transports: [new transports.Console()]
+});
 
 dotenv.config();
 
-// const PORT = process.env.PORT || process.env.LOCAL_PORT;
+const port = process.env.PORT || process.env.LOCAL_PORT;
 // Create global app object
 const app = express();
 
@@ -30,21 +38,12 @@ app.use(
     saveUninitialized: false
   })
 );
-// app.use(require('./routes'));
 
 app.get('/', (req, res) => res.status(200).send({
   status: 'connection successful',
   message: 'Welcome to Author Haven!',
 }));
 
-app.use('*', (req, res) => res.status(404).send({
-  status: 'error',
-  error: '404',
-  message: 'Route does not exist.',
-}));
-
-// finally, let's start our server...
-// app.listen(PORT, () => {
-//   console.log(`server running on port ${PORT}`);
-// });
-app.listen(process.env.PORT || 3000);
+app.listen(port, () => {
+  logger.debug(`Server running on port ${chalk.blue(port)}`);
+});
