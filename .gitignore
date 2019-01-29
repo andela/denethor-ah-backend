@@ -34,9 +34,13 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
+<<<<<<< HEAD
 # Enviromental 
 .env
 
 # Coveralls and Coverage folder
 .coveralls.yml
 .nyc_output
+=======
+.env
+>>>>>>> chore:Setup express server and Babel

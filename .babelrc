@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "presets": [
     [
       "@babel/preset-env", {
@@ -9,3 +10,15 @@
     ]
   ]
 }
+=======
+    "presets": [
+      [
+        "@babel/preset-env", {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  }
+>>>>>>> chore:Setup express server and Babel
