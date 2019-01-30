@@ -47,3 +47,5 @@ app.get('/', (req, res) => res.status(200).send({
 app.listen(port, () => {
   logger.debug(`Server running on port ${chalk.blue(port)}`);
 });
+
+export default app;
