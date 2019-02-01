@@ -37,5 +37,6 @@ node_modules
 # Enviromental 
 .env
 
-# Coveralls
-.coveralls.yaml
+# Coveralls and Coverage folder
+.coveralls.yml
+.nyc_output

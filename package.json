@@ -6,7 +6,8 @@
   "scripts": {
     "test": "PORT=3001 mocha --require @babel/register tests/**/*.js --exit",
     "lint": "eslint",
-    "start:dev": "NODE_ENV=development nodemon --exec babel-node index.js --preset-env"
+    "start:dev": "NODE_ENV=development nodemon --exec babel-node index.js --preset-env",
+    "coverage": "nyc npm test && nyc report --reporter=lcov --reporter=text-lcov | coveralls"
   },
   "author": "Andela Simulations Programme",
   "license": "MIT",
@@ -40,10 +41,13 @@
     "@babel/preset-env": "^7.3.1",
     "chai": "^4.2.0",
     "chai-http": "^4.2.1",
+    "coveralls": "^3.0.2",
     "eslint": "^5.12.1",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.15.0",
     "mocha": "^5.2.0",
-    "nodemon": "^1.18.9"
+    "mocha-lcov-reporter": "^1.3.0",
+    "nodemon": "^1.18.9",
+    "nyc": "^13.1.0"
   }
 }
