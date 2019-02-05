@@ -6,6 +6,9 @@ import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
 
+import auth from './server/api/middlewares/authentication/authenticate';
+import userRoute from './server/api/routes/user';
+
 const logger = createLogger({
   level: 'debug',
   format: format.simple(),
@@ -29,7 +32,8 @@ app.use(bodyParser.json());
 app.use(require('method-override')());
 
 app.use(express.static(`${__dirname}/public`));
-
+app.use(auth.initialize());
+app.use('/api/users', userRoute);
 app.use(
   session({
     secret: 'authorshaven',
