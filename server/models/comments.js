@@ -1,6 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
   const Comment = sequelize.define('Comment', {
-    commentBody: DataTypes.TEXT,
+    commentBody: {
+      allowNull: false,
+      type: DataTypes.TEXT
+    },
   });
   return Comment;
 };

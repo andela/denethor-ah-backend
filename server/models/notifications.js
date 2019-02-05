@@ -1,8 +1,13 @@
 module.exports = (sequelize, DataTypes) => {
   const Notification = sequelize.define('Notification', {
-    id: DataTypes.UUID,
-    notificationBody: DataTypes.TEXT,
-    seen: DataTypes.BOOLEAN
+    notificationBody: {
+      allowNull: false,
+      type: DataTypes.TEXT
+    },
+    seen: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN
+    },
   });
   return Notification;
 };
