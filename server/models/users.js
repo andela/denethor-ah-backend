@@ -2,12 +2,24 @@ import bcrypt from 'bcrypt';
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
-    username: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password: DataTypes.STRING,
+    username: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
+    email: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
+    password: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
     bio: DataTypes.TEXT,
     imageUrl: DataTypes.STRING,
-    isVerified: DataTypes.BOOLEAN
+    isVerified: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN
+    },
   });
 
   User.beforeCreate(async (user) => {
