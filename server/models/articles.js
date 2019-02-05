@@ -1,12 +1,27 @@
 module.exports = (sequelize, DataTypes) => {
   const Article = sequelize.define('Article', {
-    slug: DataTypes.TEXT,
-    body: DataTypes.TEXT,
-    description: DataTypes.TEXT,
-    authorId: DataTypes.UUID,
+    slug: {
+      allowNull: false,
+      type: DataTypes.TEXT
+    },
+    body: {
+      allowNull: false,
+      type: DataTypes.TEXT
+    },
+    description: {
+      allowNull: false,
+      type: DataTypes.TEXT
+    },
+    authorId: {
+      allowNull: false,
+      type: DataTypes.UUID,
+    },
     references: DataTypes.ARRAY(DataTypes.STRING),
-    CategoryId: DataTypes.INTEGER
-  }, {});
+    CategoryId: {
+      allowNull: false,
+      type: DataTypes.INTEGER
+    },
+  });
   Article.associate = (models) => {
     Article.belongsTo(models.User, {
       foreignKey: 'userId'

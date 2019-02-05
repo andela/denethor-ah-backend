@@ -1,5 +1,3 @@
-
-
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
@@ -15,7 +13,9 @@ const opts = {
 let sequelize;
 
 if (process.env.NODE_ENV === 'production') {
-  sequelize = process.env.DATABASE_URL;
+  sequelize = process.env.DATABASE_URL_PROD;
+} if (process.env.NODE_ENV === 'test') {
+  sequelize = process.env.DATABASE_URL_TEST;
 } else {
   sequelize = new Sequelize(config.url, opts);
 }

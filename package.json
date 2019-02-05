@@ -7,6 +7,7 @@
     "test": "PORT=3001 nyc mocha --require @babel/register tests/**/*.js --exit",
     "lint": "eslint",
     "start:dev": "NODE_ENV=development nodemon --exec babel-node index.js --preset-env",
+    "start": "NODE_ENV=production nodemon --exec babel-node index.js --preset-env",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "migrate": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize db:migrate",
     "undo:migration": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize db:migrate:undo:all",
