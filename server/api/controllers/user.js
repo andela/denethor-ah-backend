@@ -125,3 +125,20 @@ export const socialLogin = async (req, res) => {
     });
   }
 };
+
+export const logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).send({
+        error: {
+          message: 'server error',
+          error: err
+        }
+      });
+    }
+  });
+  return res.status(200).send({
+    status: 'success',
+    message: 'You successfully logged out'
+  });
+};

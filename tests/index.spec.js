@@ -19,7 +19,7 @@ describe('Test Cases for the API end points', () => {
 describe('Social login endpoints', () => {
   it('Google login api should respond with a status of 200', (done) => {
     chai.request(app)
-      .get('/api/user/google')
+      .get('/api/users/google')
       .end((err, res) => {
         expect(res).to.have.status(200);
         done();
@@ -27,7 +27,7 @@ describe('Social login endpoints', () => {
   });
   it('Facebook login api should respond with a status of 200', (done) => {
     chai.request(app)
-      .get('/api/user/facebook')
+      .get('/api/users/facebook')
       .end((err, res) => {
         expect(res).to.have.status(200);
         done();
@@ -35,7 +35,7 @@ describe('Social login endpoints', () => {
   });
   it('Twitter login api should respond with a status of 200', (done) => {
     chai.request(app)
-      .get('/api/user/twitter')
+      .get('/api/users/twitter')
       .end((err, res) => {
         expect(res).to.have.status(200);
         done();
@@ -43,7 +43,7 @@ describe('Social login endpoints', () => {
   });
   it('Google redirect without required parameters should throw a 400', (done) => {
     chai.request(app)
-      .get('/api/user/google/redirect')
+      .get('/api/users/google/redirect')
       .end((err, res) => {
         expect(res).to.have.status(400);
         done();
@@ -51,7 +51,7 @@ describe('Social login endpoints', () => {
   });
   it('Facebook redirect should respond with a status of 200', (done) => {
     chai.request(app)
-      .get('/api/user/facebook/redirect')
+      .get('/api/users/facebook/redirect')
       .end((err, res) => {
         expect(res).to.have.status(200);
         done();
@@ -59,7 +59,7 @@ describe('Social login endpoints', () => {
   });
   it('Twitter redirect should respond with a status of 200', (done) => {
     chai.request(app)
-      .get('/api/user/twitter/redirect')
+      .get('/api/users/twitter/redirect')
       .end((err, res) => {
         expect(res).to.have.status(200);
         done();

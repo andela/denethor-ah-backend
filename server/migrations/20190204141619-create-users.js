@@ -1,6 +1,13 @@
 module.exports = {
   up(queryInterface, Sequelize) {
     return queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
+      .then(() => queryInterface.sequelize.query(`CREATE TABLE IF NOT EXISTS "session" (
+      "sid" varchar NOT NULL COLLATE "default",
+      "sess" json NOT NULL,
+      "expire" timestamp(6) NOT NULL
+      )
+      WITH (OIDS=FALSE);
+      ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;`))
       .then(() => queryInterface.createTable('User', {
         id: {
           allowNull: false,
