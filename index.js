@@ -8,6 +8,7 @@ import sessionManagement from './server/config/session';
 
 import auth from './server/api/middlewares/authentication/authenticate';
 import userRoute from './server/api/routes/user';
+import articleRoute from './server/api/routes/article';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ sessionManagement(app);
 app.use(express.static(`${__dirname}/public`));
 app.use(auth.initialize());
 app.use('/api/users', userRoute);
+app.use('/api/articles', articleRoute);
 
 app.get('/', (req, res) => res.status(200).send({
   status: 'connection successful',

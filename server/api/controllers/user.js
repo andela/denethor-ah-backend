@@ -110,6 +110,7 @@ export const socialLogin = async (req, res) => {
   const {
     firstname, lastname, username, email, password, imageUrl
   } = req.user;
+  console.log(req.user);
   try {
     const { id: userId } = await User.findOrCreate({
       where: { email },
@@ -129,6 +130,7 @@ export const socialLogin = async (req, res) => {
       }
     });
   } catch (e) {
+    console.log(e);
     res.status(500).send({
       status: 'fail',
       message: 'internal server error occured'

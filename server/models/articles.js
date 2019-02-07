@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
     },
     references: DataTypes.ARRAY(DataTypes.STRING),
-    CategoryId: {
+    categoryId: {
       allowNull: false,
       type: DataTypes.INTEGER
     },
