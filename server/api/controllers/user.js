@@ -130,7 +130,6 @@ export const socialLogin = async (req, res) => {
       }
     });
   } catch (e) {
-    console.log(e);
     res.status(500).send({
       status: 'fail',
       message: 'internal server error occured'

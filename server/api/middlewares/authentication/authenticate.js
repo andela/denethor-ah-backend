@@ -32,7 +32,7 @@ const credentials = (platform, clientID, clientSecret) => {
     : { consumerKey, consumerSecret, callbackURL };
 };
 
-const passportCallback = (accessToken, refreshToken, {
+export const passportCallback = (accessToken, refreshToken, {
   id, username, displayName, name, emails: [{ value: email }], photos: [{ value: imageUrl }]
 }, done) => {
   const { givenName: firstname = displayName, familyName: lastname } = name || {};
