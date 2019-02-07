@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import passport from 'passport';
 import {
-  registerUser, verifyUser, socialLogin, loginUser
+  registerUser, verifyUser, socialLogin, loginUser, logout
 } from '../controllers/user';
 import { registrationValidation, loginValidation } from '../middlewares/validation/user';
 
@@ -20,5 +20,7 @@ userRouter.get('/google/redirect', passport.authenticate('google', { session: fa
 userRouter.get('/facebook/redirect', passport.authenticate('facebook', { session: false }), socialLogin);
 
 userRouter.get('/twitter/redirect', passport.authenticate('twitter', { session: false }), socialLogin);
+
+userRouter.get('/logout', logout);
 
 export default userRouter;
