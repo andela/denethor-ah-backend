@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import passport from 'passport';
 import {
-  registerUser, verifyUser, socialLogin, loginUser, logout
+  registerUser, verifyUser, socialLogin, loginUser, logout, followUser
 } from '../controllers/user';
 import { registrationValidation, loginValidation } from '../middlewares/validation/user';
 
@@ -9,6 +9,7 @@ const userRouter = Router();
 
 userRouter.post('/', registrationValidation, registerUser);
 userRouter.post('/login', loginValidation, loginUser);
+userRouter.post('/:userId/follow', passport.authenticate('jwt', { session: false }), followUser);
 
 userRouter.patch('/:id', verifyUser);
 userRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
