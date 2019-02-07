@@ -3,7 +3,12 @@ import pgSession from 'connect-pg-simple';
 import dotenv from 'dotenv';
 
 dotenv.config();
-const { DATABASE_URL: conString, SESS_SECRET: secret, NODE_ENV: env } = process.env;
+const {
+  SESS_SECRET: secret, NODE_ENV: env, DATABASE_URL_DEV, DATABASE_URL
+} = process.env;
+
+const conString = env === 'development'
+  ? DATABASE_URL_DEV : DATABASE_URL;
 
 
 const sessionManagementConfig = (app) => {

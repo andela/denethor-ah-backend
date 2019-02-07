@@ -4,14 +4,16 @@
   "description": "A Social platform for the creative at heart",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production nodemon --exec babel-node index.js --preset-env",
-    "test": "export NODE_ENV=test&& npm run migration && nyc mocha --require @babel/register tests/**/*.js --timeout 5000 --exit",
+    "start": "NODE_ENV=production npm run migration && NODE_ENV=production NODE_ENV=production babel-node index.js --preset-env",
+    "test": "export NODE_ENV=test && npm run migration && nyc mocha --require @babel/register tests/**/index.spec.js --timeout 5000 --exit",
     "lint": "eslint",
-    "start:dev": "NODE_ENV=development nodemon --exec babel-node index.js",
+    "start:dev": "NODE_ENV=development && npm run migration && npm run seed && nodemon --exec babel-node index.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "migrate": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize db:migrate",
     "undo:migration": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize db:migrate:undo:all",
-    "migration": "npm run undo:migration && npm run migrate"
+    "migration": "npm run undo:migration && npm run migrate",
+    "seed": "node_modules/.bin/sequelize db:seed:all",
+    "undo:seed": "node_modules/.bin/sequelize db:seed:undo:all"
   },
   "author": "Andela Simulations Programme",
   "license": "MIT",
@@ -47,6 +49,7 @@
     "request": "^2.87.0",
     "sequelize": "^4.42.0",
     "sequelize-auto-migrations": "^1.0.3",
+    "sinon": "^7.2.3",
     "slug": "^0.9.3",
     "underscore": "^1.9.1",
     "winston": "^3.2.0"

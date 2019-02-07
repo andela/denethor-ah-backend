@@ -4,6 +4,9 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.TEXT
     },
+  },
+  {
+    timestamps: false
   });
   Category.associate = (models) => {
     Category.hasMany(models.Article, {

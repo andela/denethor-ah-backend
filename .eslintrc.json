@@ -20,6 +20,7 @@
     "import/no-unresolved": [2, { "commonjs": true }],
     "func-names": 0,
     "import/named": 0,
+    "arrow-body-style": 0,
     "no-shadow": ["error", { "allow": ["req", "res", "err"] }],
     "valid-jsdoc": ["error", {
       "requireReturn": true,
