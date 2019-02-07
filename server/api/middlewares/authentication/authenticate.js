@@ -27,7 +27,7 @@ const {
 
 
 const credentials = (platform, clientID, clientSecret) => {
-  const callbackURL = `${domain}/api/user/${platform}/redirect`;
+  const callbackURL = `${domain}/api/users/${platform}/redirect`;
   return platform !== 'twitter'
     ? { clientID, clientSecret, callbackURL }
     : { consumerKey, consumerSecret, callbackURL };
