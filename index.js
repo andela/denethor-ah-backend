@@ -4,7 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
-import session from './config/session';
+import sessionManagement from './server/config/session';
 
 import auth from './server/api/middlewares/authentication/authenticate';
 import userRoute from './server/api/routes/user';
@@ -21,7 +21,6 @@ const port = process.env.PORT || process.env.LOCAL_PORT;
 // Create global app object
 const app = express();
 
-app.use(session);
 app.use(cors());
 
 // Normal express config defaults
@@ -29,10 +28,11 @@ app.use(require('morgan')('dev'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+sessionManagement(app);
 
 app.use(express.static(`${__dirname}/public`));
 app.use(auth.initialize());
-app.use('/api/user', userRoute);
+app.use('/api/users', userRoute);
 
 app.get('/', (req, res) => res.status(200).send({
   status: 'connection successful',
