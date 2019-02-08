@@ -52,7 +52,7 @@ export const registerUser = async (req, res) => {
     return res.status(200).send({
       status: 'success',
       data: {
-        user: `A confirmation email has been sent to ${email}. Click on the confirmation button to verify the account`,
+        message: `A confirmation email has been sent to ${email}. Click on the confirmation button to verify the account`,
         link: `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}`
       },
     });
@@ -111,14 +111,14 @@ export const socialLogin = async (req, res) => {
     firstname, lastname, username, email, password, imageUrl
   } = req.user;
   try {
-    const { id: userId } = await User.findOrCreate({
+    const { id } = await User.findOrCreate({
       where: { email },
       defaults: {
         firstname, lastname, username, password, imageUrl, isVerified: true
       }
     });
 
-    const token = signToken({ userId, email });
+    const token = signToken({ id, email });
 
     return res.status(200).send({
       status: 'success',
@@ -180,7 +180,7 @@ export const loginUser = async (req, res) => {
   }
 
   const token = signToken({
-    userId: foundUser.id,
+    id: foundUser.id,
     email,
   });
 
@@ -192,4 +192,52 @@ export const loginUser = async (req, res) => {
       token
     }
   });
+};
+
+/**
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} response object
+ */
+export const followUser = async (req, res) => {
+  const { userId } = req.params;
+
+  // req.user is available after password authenticates user
+  const followerId = req.user.id;
+
+  try {
+    let followedUser = await User.findByPk(userId);
+    const followingUser = await User.findByPk(followerId);
+
+    if (!followedUser || !followingUser) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'account(s) not found'
+      });
+    }
+
+    await followedUser.addFollowers(followingUser);
+
+    // get all followers retrieving only id
+    const userFollowers = await followedUser.getFollowers({
+      attributes: ['id']
+    });
+
+    followedUser = followedUser.toJSON();
+    followedUser.followers = userFollowers.map(item => item.id);
+
+    // add the number of followers the followed user has
+    followedUser.followersCount = userFollowers.length;
+
+    // return the followed user
+    return res.status(201).send({
+      status: 'success',
+      data: followedUser
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occured',
+    });
+  }
 };
