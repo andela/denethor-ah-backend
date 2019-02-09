@@ -6,8 +6,8 @@ export const createArticle = async (req, res) => {
     const userId = req.user.id;
     newArticleData.authorId = userId;
     const newArticle = await Article.create(newArticleData);
-    res.status(201).send({ data: newArticle });
+    return res.status(201).send({ status: 'Success', data: newArticle });
   } catch (error) {
-    res.status(502).send({ error, message: 'OOPS! an error occurred while trying to create your article, you do not seem to be logged in or signed up, log in and try again!' });
+    return res.status(502).send({ status: 'Error', message: 'OOPS! an error occurred while trying to create your article, you do not seem to be logged in or signed up, log in and try again!' });
   }
 };

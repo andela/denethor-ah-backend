@@ -110,16 +110,15 @@ export const socialLogin = async (req, res) => {
   const {
     firstname, lastname, username, email, password, imageUrl
   } = req.user;
-  console.log(req.user);
   try {
-    const { id: userId } = await User.findOrCreate({
+    const { id } = await User.findOrCreate({
       where: { email },
       defaults: {
         firstname, lastname, username, password, imageUrl, isVerified: true
       }
     });
 
-    const token = signToken({ userId, email });
+    const token = signToken({ id, email });
 
     return res.status(200).send({
       status: 'success',
@@ -181,7 +180,7 @@ export const loginUser = async (req, res) => {
   }
 
   const token = signToken({
-    userId: foundUser.id,
+    id: foundUser.id,
     email,
   });
 
