@@ -1,1 +1,1 @@
-import './new-article';
+import './article';
