@@ -33,4 +33,14 @@ const loginRequestSchema = {
   password,
 };
 
-export { loginRequestSchema, registrationRequestSchema };
+const resetPasswordSchema = {
+  email
+};
+
+const changePasswordSchema = {
+  password
+};
+
+export {
+  loginRequestSchema, registrationRequestSchema, resetPasswordSchema, changePasswordSchema
+};

@@ -2,6 +2,7 @@ import sgMail from '@sendgrid/mail';
 import env from 'dotenv';
 
 import verifyTemplate from './templates';
+import resetPassowordTemplate from './resetPasswordTemplates';
 
 env.config();
 sgMail.setApiKey(process.env.SENDGRID_KEY);
@@ -24,4 +25,14 @@ const sendVerificationMail = (username, email, id) => {
   return sgMail.send(msg);
 };
 
-export default sendVerificationMail;
+const resetPasswordVerificationMail = (username, email, token) => {
+  const msg = {
+    to: email,
+    from: 'support@authors-haven.com',
+    subject: '[Author\'s Haven] Email Verification',
+    html: resetPassowordTemplate(username, token),
+  };
+  return sgMail.send(msg);
+};
+
+export { sendVerificationMail, resetPasswordVerificationMail };
