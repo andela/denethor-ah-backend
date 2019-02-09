@@ -13,6 +13,7 @@ class MockUser {
   constructor(
     firstname, lastname, username, email, password
   ) {
+    this.resetPassword = { email };
     this.logIn = { email, password };
     this.signUp = {
       ...this.logIn, firstname, lastname, username
