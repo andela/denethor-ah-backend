@@ -1,8 +1,8 @@
 import Sequelize from 'sequelize';
 import { createLogger, format, transports } from 'winston';
-import { signToken } from '../helpers/tokenization/tokenize';
+import { signToken, verifyToken } from '../helpers/tokenization/tokenize';
 import { User } from '../../models';
-import sendVerificationMail from '../helpers/mailer/mailer';
+import { sendVerificationMail, resetPasswordVerificationMail } from '../helpers/mailer/mailer';
 
 const logger = createLogger({
   level: 'debug',
@@ -42,7 +42,6 @@ export const registerUser = async (req, res) => {
       email,
       password,
     });
-
     try {
       await sendVerificationMail(username, email, createdUser.id);
     } catch (error) {
@@ -164,7 +163,6 @@ export const loginUser = async (req, res) => {
 
   // Check if the user exists in the database
   const foundUser = await User.findOne({ where: { email: { [Op.eq]: email } } });
-
   if (!foundUser) {
     return res.status(401).send({
       status: 'fail',
@@ -242,9 +240,108 @@ export const followUser = async (req, res) => {
       data: followedUser
     });
   } catch (error) {
-    return res.status(500).send({
+    res.status(500).send({
       status: 'error',
-      message: 'Internal server error occured',
+      message: 'Internal server error occured.'
+    });
+  }
+};
+export const resetPasswordVerification = async (req, res) => {
+  const { body: { email } } = req;
+  try {
+    const foundUser = await User.findOne({ where: { email: { [Op.eq]: email } } });
+
+    if (!foundUser) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'User not found,Provide correct email address',
+      });
+    }
+    const token = signToken(
+      {
+        email
+      },
+      '10m'
+    );
+
+    const {
+      username
+    } = foundUser;
+
+    try {
+      await resetPasswordVerificationMail(username, foundUser.email, token);
+    } catch (error) {
+      logger.debug('Email Error::', error);
+    }
+
+    return res.status(200).send({
+      status: 'success',
+      data: {
+        message: `A confirmation email has been sent to ${foundUser.email}. Click on the confirmation button to verify the account`,
+        link: `${req.protocol}://${req.headers.host}/api/users/resetPassword/${token}`
+      },
+    });
+  } catch (e) {
+    res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occured.'
+    });
+  }
+};
+
+/**
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} response object
+ */
+export const resetPassword = async (req, res) => {
+  try {
+    const { params: { token }, body: { password } } = req;
+    const { email } = verifyToken(token);
+
+    // Check if the user exists in the database
+    const foundUser = await User.findOne({ where: { email: { [Op.eq]: email } } });
+
+    if (!foundUser) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'User not found,Provide correct email address',
+      });
+    }
+
+    const updatedUser = await foundUser.update(
+      {
+        password
+      },
+      {
+        where: {
+          email: {
+            [Op.eq]: email
+          }
+        },
+        returning: true,
+        plain: true
+      }
+    );
+
+    return res.status(200).send({
+      status: 'success',
+      data: {
+        userId: updatedUser.id,
+        email,
+        message: 'Password update Successful. You can now login'
+      }
+    });
+  } catch (e) {
+    if (e.name === 'TokenExpiredError' || e.name === 'JsonWebTokenError') {
+      return res.status(401).send({
+        status: 'fail',
+        message: 'Link has expired. Kindly re-initiate password change.'
+      });
+    }
+    res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occured.'
     });
   }
 };
