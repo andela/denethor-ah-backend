@@ -16,7 +16,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
   before(async () => {
     expiredToken = await signToken({
       email
-    }, 1);
+    }, '0.0005');
 
     userToken2 = await signToken({
       email: email2
