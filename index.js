@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
@@ -27,8 +26,8 @@ app.use(cors());
 // Normal express config defaults
 app.use(require('morgan')('dev'));
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 sessionManagement(app);
 
 app.use(express.static(`${__dirname}/public`));
@@ -46,7 +45,7 @@ app.get('*', (req, res) => res.status(200).send({
   message: 'Route not found',
 }));
 
-app.listen(5000, function serverListner() {
+app.listen(port, function serverListner() {
   logger.debug(`Server running on port ${chalk.blue(port)}`);
 });
 export default app;
