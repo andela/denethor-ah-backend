@@ -3,16 +3,25 @@ import chaiHttp from 'chai-http';
 import { sequelize } from '../../server/models';
 import app from '../../index';
 import { user4 } from '../mocks/mockUsers';
+import { signToken } from '../../server/api/helpers/tokenization/tokenize';
 
 chai.use(chaiHttp);
 
 describe('Test Cases for Reset Password Endpoint', () => {
-  const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5Yjc3ZmZlNS1hMTJkLTQ0YmYtYTllOC0zZmIzZGNkMmYwMWEiLCJlbWFpbCI6Im95ZWRlamlwZWFjZUB5YWhvby5jb20iLCJpYXQiOjE1NDk1NDQwNTcsImV4cCI6MTU0OTU0NzY1N30.eLlfTWIHiNoNIgREBKkVTak4aKDTZqKqNllM72pkiv8';
-  let userToken;
+  let userToken, userToken2, expiredToken;
   const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6I66iMmU3MDAwLWE3MjEtNDY1OS1hMjRiLTg1M2RlNDk4ZDBjOSIsImVtYWlsIjoicHJpbmNlc3M2M0BleGFtcGxlLmNvbSIsImlhdCI6MTU0OTY1MDgzNywiZXhwIjoxNTQ5NzM3MjM3fQ.1B1I2tlmJzGBdiAmY9R_6tPdRrBXHkdW2wOYUSZ0Gbk';
-  const userToken2 = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImdiZWR1LWVudGVyLWJvZHkiLCJlbWFpbCI6IkpvaG4uRG9lQHRlc3QuY29tIn0.Ais-G2th51qOUxx2_1cS3FMANgpK1XahwzB2OlACxUo';
+  const email = 'user4@example.test';
+  const email2 = 'user@example.test';
 
   before(async () => {
+    expiredToken = await signToken({
+      email
+    }, 1);
+
+    userToken2 = await signToken({
+      email: email2
+    });
+
     const { body: { data: { link } } } = await chai.request(app)
       .post('/api/users')
       .send(user4.signUp);

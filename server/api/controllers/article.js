@@ -6,8 +6,7 @@ const { Op } = Sequelize;
 
 export const createArticle = async (req, res) => {
   try {
-    const newArticleData = req.body;
-    const userId = req.user.id;
+    const { body: newArticleData, user: { id: userId } } = req;
     newArticleData.authorId = userId;
     const newArticle = await Article.create(newArticleData);
     return res.status(201).send({ status: 'Success', data: newArticle });
