@@ -16,21 +16,25 @@ describe('Test Cases for User Followership end point', () => {
     await chai.request(app)
       .patch(link.slice(22));
 
-    const res = await chai.request(app)
+    const { body: { data: { userId: user1Id } } } = await chai.request(app)
       .post('/api/users/login')
       .send(user1.logIn);
 
-    user1.id = res.body.data.userId;
-    user1.token = res.body.data.token;
+    user1.id = user1Id;
 
     const { body: { data: { link: link2 } } } = await chai.request(app)
       .post('/api/users')
       .send(user4.signUp);
 
-    const { body: { data } } = await chai.request(app)
+    await chai.request(app)
       .patch(link2.slice(22));
 
-    user4.token = data.user.token;
+    const { body: { data: { userId: user4Id, token: user4Token } } } = await chai.request(app)
+      .post('/api/users/login')
+      .send(user4.logIn);
+
+    user4.id = user4Id;
+    user4.token = user4Token;
   });
 
   after((done) => {
@@ -70,7 +74,8 @@ describe('Test Cases for User Followership end point', () => {
       .set('authorization', `Bearer ${user4.token}`);
     // since we create 2 new users
     // when user4 follows user1, user1 should just have one follower
-    expect(res.body.data.followersCount).to.equal(1);
+    const user4IdFromResponse = res.body.data.followers.find(followerId => followerId === user4.id);
+    expect(user4IdFromResponse).to.eql(user4.id);
     expect(res).to.have.status(201);
   });
 });

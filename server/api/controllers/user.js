@@ -230,11 +230,11 @@ export const followUser = async (req, res) => {
       attributes: ['id']
     });
 
+    // we use toJSON to convert the sequelize model instance to json object
+    // so we can add the followers property to the followedUser object
+    // to be returned
     followedUser = followedUser.toJSON();
     followedUser.followers = userFollowers.map(item => item.id);
-
-    // add the number of followers the followed user has
-    followedUser.followersCount = userFollowers.length;
 
     // return the followed user
     return res.status(201).send({
