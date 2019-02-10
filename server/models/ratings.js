@@ -1,10 +1,12 @@
 module.exports = (sequelize, DataTypes) => {
   const Rating = sequelize.define('Rating', {
-    Rating: {
+    rating: {
       allowNull: false,
-      defaultValue: 0,
       type: DataTypes.INTEGER
     },
+  },
+  {
+    timestamps: false
   });
   return Rating;
 };

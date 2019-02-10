@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
-import { user1 } from '../mocks/mockUsers';
+import { user1, user2 } from '../mocks/mockUsers';
 import {
   mockArticle, invalidArticle, mockHighlight, InvalidHighlight
 } from '../mocks/mockArticle';
@@ -115,6 +115,7 @@ describe('Tests for article resource', () => {
     let articleId;
     let articleId2;
     const fakeArticleId = 'fakeArticleId';
+
     before(async () => {
       const { body: { data: { token: userToken } } } = await chai.request(app)
         .post('/api/users/login')
@@ -242,6 +243,7 @@ describe('Tests for article resource', () => {
 
       token = userToken;
 
+
       const { body: { data: { id } } } = await chai.request(app)
         .post('/api/articles')
         .set('Authorization', `Bearer ${userToken}`)
@@ -332,6 +334,127 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(404);
       expect(data).to.have.property('message');
       expect(status).to.eql('fail');
+    });
+  });
+  describe('Tests for Rating Articles', () => {
+    let token;
+    let token2;
+    let articleId;
+    let articleId2;
+
+    const wrongArticleId = 'd073e097-fcec-4dd5-a29a-84e020cdd25f';
+    const nonExistingArticleId = 'd073e097-fcec-4dd5-a29a-84e020c';
+
+    before(async () => {
+      const { body: { data: { token: userToken } } } = await chai.request(app)
+        .post('/api/users/login')
+        .send(user1.logIn);
+      token = userToken;
+
+      const { body: { data: { link } } } = await chai.request(app)
+        .post('/api/users')
+        .send(user2.signUp);
+
+      const { body: { data: { user: { token: userToken2 } } } } = await chai.request(app)
+        .patch(link.slice(22));
+      token2 = userToken2;
+
+      const { body: { data: { id } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+      articleId = id;
+
+      const { body: { data: { id: id2 } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+      articleId2 = id2;
+
+      await chai.request(app)
+        .post(`/api/articles/${articleId2}/ratings`)
+        .set('Authorization', `Bearer ${userToken2}`)
+        .send({
+          rating: 5
+        });
+    });
+
+    it('Should return server error if article id does not exist', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${wrongArticleId}/ratings`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          rating: 5
+        });
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(404);
+      expect(status).to.equal('fail');
+      expect(message).to.equal('Article not found');
+    });
+
+    it('Should create ratings if input is correct', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${articleId}/ratings`)
+        .set('Authorization', `Bearer ${token2}`)
+        .send({
+          rating: 4
+        });
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(201);
+      expect(status).to.equal('success');
+      expect(message).to.equal('Yaay! You just rated this article');
+    });
+
+    it('Should not create ratings if article has already been rated by the user', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${articleId2}/ratings`)
+        .set('Authorization', `Bearer ${token2}`)
+        .send({
+          rating: 4
+        });
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(401);
+      expect(status).to.equal('fail');
+      expect(message).to.equal('You already rated this article');
+    });
+
+    it('Should not create rating if rating is higher than 5', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${articleId}/ratings`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          rating: 10
+        });
+      const { body: { status }, body } = res;
+      expect(res).to.have.status(422);
+      expect(status).to.equal('fail');
+      expect(body).to.have.property('data');
+    });
+
+    it('Should not allow Authors rate their own Article', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${articleId}/ratings`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          rating: 4
+        });
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(401);
+      expect(status).to.equal('fail');
+      expect(message).to.equal("Sorry! You can't rate your article");
+    });
+
+    it('Should return error if article id is incorrrect', async () => {
+      const res = await chai.request(app)
+        .post(`/api/articles/${nonExistingArticleId}/ratings`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          rating: 5
+        });
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(502);
+      expect(status).to.equal('Error');
+      expect(message).to.eql('OOPS! an error occurred while trying to rate article. log in and try again!');
     });
   });
 });
