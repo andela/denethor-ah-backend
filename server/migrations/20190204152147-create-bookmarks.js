@@ -11,7 +11,6 @@ module.exports = {
     articleId: {
       allowNull: false,
       type: Sequelize.UUID,
-      defaultValue: Sequelize.literal('uuid_generate_v4()'),
       onDelete: 'CASCADE',
       references: {
         model: 'Article',
@@ -22,7 +21,6 @@ module.exports = {
     userId: {
       allowNull: false,
       type: Sequelize.UUID,
-      defaultValue: Sequelize.literal('uuid_generate_v4()'),
       onDelete: 'CASCADE',
       references: {
         model: 'User',
@@ -35,6 +33,6 @@ module.exports = {
       type: Sequelize.DATE
     },
   }),
-  // eslint-disable-next-line no-unused-vars
+
   down: queryInterface => queryInterface.dropTable('Bookmark')
 };

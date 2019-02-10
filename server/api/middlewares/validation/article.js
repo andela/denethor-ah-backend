@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { newArticleSchema, createHighlightSchema } from './schemas/article';
+import { newArticleSchema, createHighlightSchema, ratingSchema } from './schemas/article';
 
 /**
 * @export
@@ -29,6 +29,25 @@ export const newArticleValidator = (req, res, next) => {
 */
 export const createHighlightValidator = (req, res, next) => {
   Joi.validate(req.body, createHighlightSchema)
+    .then(() => next())
+    .catch(error => res.status(422).send({
+      status: 'fail',
+      data: {
+        input: error.details[0].message,
+      }
+    }));
+};
+
+/**
+* @export
+* @function ratingValidator
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @param {Object} next - next object
+* @returns {Object} next object
+*/
+export const ratingValidator = (req, res, next) => {
+  Joi.validate(req.body, ratingSchema)
     .then(() => next())
     .catch(error => res.status(422).send({
       status: 'fail',

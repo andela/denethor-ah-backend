@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import passport from 'passport';
-import { newArticleValidator, createHighlightValidator } from '../middlewares/validation/article';
+import { newArticleValidator, createHighlightValidator, ratingValidator } from '../middlewares/validation/article';
 import {
-  createArticle, likeArticle, dislikeArticle, createHighlight, getHighlights
+  createArticle, likeArticle, dislikeArticle, createHighlight, getHighlights, rateArticle
 } from '../controllers/article';
 import commentsRouter from './comment';
 
@@ -16,6 +16,7 @@ articlesRouter.post('/:id/highlights',
   createHighlightValidator,
   createHighlight);
 articlesRouter.get('/:id/highlights', passport.authenticate('jwt', { session: false }), getHighlights);
+articlesRouter.post('/:articleId/ratings', passport.authenticate('jwt', { session: false }), ratingValidator, rateArticle);
 
 articlesRouter.use('/:articleId/comments', commentsRouter);
 
