@@ -3,7 +3,6 @@ module.exports = {
     tagId: {
       allowNull: false,
       type: Sequelize.UUID,
-      onDelete: 'CASCADE',
       references: {
         model: 'Tag',
         key: 'id',
@@ -12,7 +11,6 @@ module.exports = {
     articleId: {
       allowNull: false,
       type: Sequelize.UUID,
-      onDelete: 'CASCADE',
       references: {
         model: 'Article',
         key: 'id'
