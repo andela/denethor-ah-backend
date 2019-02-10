@@ -8,6 +8,8 @@ const categoryId = Joi.number().required();
 const tags = Joi.string();
 const highlight = Joi.string().trim().min(1).required();
 const comment = Joi.string().trim().min(1).required();
+const rating = Joi.number().integer().min(1).max(5)
+  .required();
 
 export const newArticleSchema = {
   slug,
@@ -19,3 +21,4 @@ export const newArticleSchema = {
 };
 
 export const createHighlightSchema = { highlight, comment };
+export const ratingSchema = { rating };

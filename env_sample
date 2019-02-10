@@ -10,3 +10,4 @@ TWITTER_CONSUMER_SECRET=<twitterConsumerKey>
 JWT_SECRET=<...>
 SESS_SECRET=<sessionSecret>
 SENDGRID_KEY=<...>
+ADMIN_PASS=<...>

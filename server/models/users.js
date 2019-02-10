@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
   });
   User.associate = (models) => {
     User.hasMany(models.Article, {
-      foreignKey: 'userId',
+      foreignKey: 'authorId',
       as: 'userArticles',
     });
     User.belongsToMany(models.User, {
@@ -66,6 +66,9 @@ module.exports = (sequelize, DataTypes) => {
     });
     User.hasMany(models.LikeDislike, {
       foreignKey: 'userId'
+    });
+    User.hasMany(models.Rating, {
+      foreignKey: 'userId',
     });
   };
   User.passwordMatch = (encodedPassword, password) => bcrypt.compareSync(password, encodedPassword);
