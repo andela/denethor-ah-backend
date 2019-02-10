@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
-import { user1 } from '../mocks/mockUsers';
+import { user1, user2 } from '../mocks/mockUsers';
 import { mockArticle, invalidArticle } from '../mocks/mockArticle';
 import mockCategory from '../mocks/mockCategory';
 import { comment, longComment } from '../mocks/mockComments';
@@ -63,6 +63,7 @@ describe('Tests for article resource', () => {
         .send(mockArticle);
       expect(res).to.have.status(201);
       expect(res.body.status).to.equal('Success');
+      expect(res.body.data.readTime).to.not.equal(undefined);
     });
   });
 
@@ -195,6 +196,48 @@ describe('Tests for article resource', () => {
       expect(body).to.have.property('data');
       expect(data).to.have.property('impression');
       expect(impressionMessage).to.eql('You un-disliked this Article!');
+    });
+  });
+
+  describe('Tests for get an article', () => {
+    let articleId;
+    let userToken;
+
+    before(async () => {
+      await models.Category.bulkCreate(mockCategory);
+
+      const { body: { data: { link } } } = await chai.request(app)
+        .post('/api/users')
+        .send(user2.signUp);
+
+      const { body: { data: { user: { token } } } } = await chai.request(app)
+        .patch(link.slice(22));
+
+      userToken = token;
+
+      // create an article
+      const res = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+      articleId = res.body.data.id;
+    });
+
+    it('should return all articles', async () => {
+      const res = await chai.request(app)
+        .get('/api/articles');
+      expect(res).to.have.status(200);
+      expect(res.body.status).to.equal('success');
+      expect(res.body.data.length > 0).to.equal(true);
+    });
+
+    it('should return a given article', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId}`);
+      expect(res).to.have.status(200);
+      expect(res.body.status).to.equal('success');
+      expect(res.body.data.id).to.equal(articleId);
+      expect(res.body.data.readTime).to.not.equal(undefined);
     });
   });
 });

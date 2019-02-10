@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
   });
   Article.associate = (models) => {
     Article.belongsTo(models.User, {
-      foreignKey: 'userId'
+      foreignKey: 'authorId'
     });
     Article.hasMany(models.Comment, {
       foreignKey: 'articleId',
@@ -46,8 +46,9 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'articleId',
       otherKey: 'tagId',
       through: 'TagArticle',
-      as: 'tags',
       timestamps: false,
+      as: 'tags',
+      onDelete: 'CASCADE'
     });
   };
   return Article;

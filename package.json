@@ -8,13 +8,14 @@
     "start": "NODE_ENV=production npm run migration && npm run build && node dist",
     "test": "export NODE_ENV=test && npm run migration && nyc mocha --require @babel/register tests/**/index.spec.js --timeout 5000 --exit",
     "lint": "eslint",
-    "start:dev": "NODE_ENV=development && npm run migration && npm run seed && nodemon --exec babel-node index.js",
+    "start:dev": "export NODE_ENV=development && npm run migration && npm run seed && nodemon --exec babel-node index.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "migrate": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize db:migrate",
     "undo:migration": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize db:migrate:undo:all",
     "migration": "npm run undo:migration && npm run migrate",
     "seed": "node_modules/.bin/sequelize db:seed:all",
-    "undo:seed": "node_modules/.bin/sequelize db:seed:undo:all"
+    "undo:seed": "node_modules/.bin/sequelize db:seed:undo:all",
+    "seed:dev": "export NODE_ENV=development&& babel-node ./server/seeds/index.js --preset-env"
   },
   "author": "Andela Simulations Programme",
   "license": "MIT",
