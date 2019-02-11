@@ -1,14 +1,16 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
-import { sequelize } from '../../server/models';
+import models, { sequelize } from '../../server/models';
 import app from '../../index';
 import { user3, user4 } from '../mocks/mockUsers';
+import mockRoles from '../mocks/mockRoles';
 
 
 chai.use(chaiHttp);
 
 describe('Test Cases for Login Endpoint', () => {
   before(async () => {
+    await models.Roles.bulkCreate(mockRoles);
     const { body: { data: { link } } } = await chai.request(app)
       .post('/api/users')
       .send(user3.signUp);

@@ -8,7 +8,16 @@ module.exports = {
       password: 'password',
       createdAt: new Date(),
       updatedAt: new Date()
-    }], {});
+    }], {}).then(() => queryInterface.bulkInsert('User', [{
+      firstname: 'Chubi',
+      lastname: 'Best',
+      username: 'testuser1',
+      email: 'chubi.best@example.com',
+      password: 'password',
+      role: 'admin',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }], {}));
   },
 
   down: (queryInterface) => {
