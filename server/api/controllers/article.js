@@ -42,21 +42,18 @@ const insertTag = async (tagArray) => {
 * @returns {Object} JSON object (JSend format)
 */
 export const createArticle = async (req, res) => {
-  try {
-    const { body: newArticleData, user: { id: userId } } = req;
-    newArticleData.authorId = userId;
-    const newArticleTags = req.body.tags;
+  try { 
+    const { body: { slug, description, body, references, categoryId } , user: { id: userId } } = req;
+    const newArticle = await Article.create({ slug, description, body, references, categoryId, authorId: userId });
 
-    const tagArray = formatTags(newArticleTags);
-    delete (newArticleData.tags);
-
-    const newArticle = await Article.create(newArticleData);
-
-    const newTags = await insertTag(tagArray);
-
-    newTags.forEach(async (tag) => {
-      await newArticle.addTags(tag[0].id);
-    });
+    if (req.body.tags) {
+      const newArticleTags = req.body.tags;
+      const tagArray = formatTags(newArticleTags);
+      const newTags = await insertTag(tagArray);
+      newTags.forEach(async (tag) => {
+        await newArticle.addTags(tag[0].id);
+      });
+    }
 
     return res.status(201).send({ status: 'Success', data: newArticle });
   } catch (error) {

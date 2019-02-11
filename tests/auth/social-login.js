@@ -3,13 +3,15 @@ import passport from 'passport';
 import sinon from 'sinon';
 import chaiHttp from 'chai-http';
 import app from '../../index';
-import { sequelize } from '../../server/models';
+import models, { sequelize } from '../../server/models';
 import { user, mockStrategy } from '../mocks/mockStrategy';
+import mockRoles from '../mocks/mockRoles';
 
 chai.use(chaiHttp);
 
 describe('Test Cases for the social login endpoints', () => {
-  before(() => {
+  before(async () => {
+    await models.Roles.bulkCreate(mockRoles);
     const fake = sinon.fake.returns(passport.use(mockStrategy));
     sinon.replace(passport, 'use', fake);
   });

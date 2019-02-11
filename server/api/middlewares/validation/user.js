@@ -78,3 +78,34 @@ export const changePasswordValidation = (req, res, next) => {
       }
     }));
 };
+
+
+/**
+* @export
+* @function requestPasswordValidation
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @param {Object} next - next object
+* @returns {Object} next object
+*/
+export const changeRoleValidation = (
+  { user: { role }, body: { role: proposedRole } }, res, next
+) => {
+  if (role !== 'admin') {
+    return res.status(401).send({
+      status: 'fail',
+      message: 'only admins can change user roles'
+    });
+  }
+
+  const availableRoles = ['admin', 'author'];
+
+  if (!availableRoles.includes(proposedRole)) {
+    return res.status(422).send({
+      status: 'fail',
+      message: 'not a valid role'
+    });
+  }
+
+  next();
+};

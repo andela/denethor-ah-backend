@@ -6,6 +6,7 @@ import { user1 } from '../mocks/mockUsers';
 import { mockArticle, invalidArticle } from '../mocks/mockArticle';
 import mockCategory from '../mocks/mockCategory';
 import { comment, longComment } from '../mocks/mockComments';
+import mockRoles from '../mocks/mockRoles';
 
 chai.use(chaiHttp);
 
@@ -22,6 +23,7 @@ describe('Tests for article resource', () => {
     const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6I66iMmU3MDAwLWE3MjEtNDY1OS1hMjRiLTg1M2RlNDk4ZDBjOSIsImVtYWlsIjoicHJpbmNlc3M2M0BleGFtcGxlLmNvbSIsImlhdCI6MTU0OTY1MDgzNywiZXhwIjoxNTQ5NzM3MjM3fQ.1B1I2tlmJzGBdiAmY9R_6tPdRrBXHkdW2wOYUSZ0Gbk';
 
     before(async () => {
+      await models.Roles.bulkCreate(mockRoles);
       await models.Category.bulkCreate(mockCategory);
 
       const { body: { data: { link } } } = await chai.request(app)

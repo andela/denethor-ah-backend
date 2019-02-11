@@ -41,7 +41,7 @@ export const registerUser = async (req, res) => {
       email,
       password,
     });
-    const link = `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}`;
+    const link = `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}/verify`;
 
     try {
       await sendVerificationMail(username, email, link);
@@ -90,18 +90,16 @@ export const verifyUser = async (req, res) => {
       });
     }
 
-    const updatedUser = await unverifiedUser.update({ isVerified: true },
+    const { email, username, role } = await unverifiedUser.update({ isVerified: true },
       { returning: true, plain: true });
-    const token = signToken({ id, email: updatedUser.email });
+    const token = signToken({ id, email, role });
 
     return res.status(200).send({
       status: 'success',
       data: {
         message: 'Verification successful. You\'re all set!',
         user: {
-          username: updatedUser.username,
-          email: updatedUser.email,
-          token
+          username, email, token, role
         }
       }
     });
@@ -115,23 +113,23 @@ export const verifyUser = async (req, res) => {
 
 export const socialLogin = async (req, res) => {
   const {
-    firstname, lastname, username, email, password, imageUrl
+    firstname, lastname, username, email, password, imageUrl, role
   } = req.user;
   try {
     const { id } = await User.findOrCreate({
       where: { email },
       defaults: {
-        firstname, lastname, username, password, imageUrl, isVerified: true
+        firstname, lastname, username, password, imageUrl, isVerified: true, role
       }
     });
 
-    const token = signToken({ id, email });
+    const token = signToken({ id, email, role });
 
     return res.status(200).send({
       status: 'success',
       data: {
         message: 'login successful',
-        user: { username, email },
+        user: { username, email, role },
         token
       }
     });
@@ -192,10 +190,9 @@ export const loginUser = async (req, res) => {
     });
   }
 
-  const token = signToken({
-    id: foundUser.id,
-    email,
-  });
+  const { id, role } = foundUser;
+
+  const token = signToken({ id, email, role });
 
   return res.status(200).send({
     status: 'success',
@@ -350,6 +347,58 @@ export const resetPassword = async (req, res) => {
     res.status(500).send({
       status: 'error',
       message: 'Internal server error occured.'
+    });
+  }
+};
+
+export const upgradeToAdmin = async ({ user: { id }, body: { pass } }, res) => {
+  if (pass !== process.env.ADMIN_PASS) {
+    return res.status(403).send({
+      status: 'fail',
+      message: 'wrong pass'
+    });
+  }
+  try {
+    const [, [{ username, role: assignedRole }]] = await User.update(
+      { role: 'admin' },
+      { returning: true, where: { id: { [Op.eq]: id } } }
+    );
+    res.status(200).send({
+      status: 'success',
+      data: { id, username, assignedRole }
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occured.'
+    });
+  }
+};
+
+export const changeRole = async ({ body: { id, role: proposedRole } }, res) => {
+  try {
+    const user = await User.update(
+      { role: proposedRole },
+      { returning: true, where: { id: { [Op.eq]: id } } }
+    );
+
+    if (user[0] === 0) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'no user found with that id'
+      });
+    }
+
+    const [, [{ username, role: assignedRole }]] = user;
+
+    res.status(200).send({
+      status: 'success',
+      data: { id, username, assignedRole }
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      message: 'internal server error occured'
     });
   }
 };

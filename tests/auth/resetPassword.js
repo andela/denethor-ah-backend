@@ -1,9 +1,10 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
-import { sequelize } from '../../server/models';
+import models, { sequelize } from '../../server/models';
 import app from '../../index';
 import { user4 } from '../mocks/mockUsers';
 import { signToken } from '../../server/api/helpers/tokenization/tokenize';
+import mockRoles from '../mocks/mockRoles';
 
 chai.use(chaiHttp);
 
@@ -14,6 +15,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
   const email2 = 'user@example.test';
 
   before(async () => {
+    await models.Roles.bulkCreate(mockRoles);
     expiredToken = await signToken({
       email
     }, '0.0005');
