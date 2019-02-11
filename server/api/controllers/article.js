@@ -1,14 +1,63 @@
 import Sequelize from 'sequelize';
-
-import { Article, LikeDislike } from '../../models';
+import { createLogger, format, transports } from 'winston';
+import { Article, LikeDislike, Tag } from '../../models';
 
 const { Op } = Sequelize;
 
+const logger = createLogger({
+  level: 'debug',
+  format: format.simple(),
+  transports: [new transports.Console()]
+});
+
+
+const formatTags = (newArticleTags) => {
+  return newArticleTags.split(',').map(word => word.replace(/(\s+)/g, '').trim());
+};
+
+/**
+*
+* @function insertTag
+* @param {Array} tagArray - tags received
+* @returns {Object} JSON object (JSend format)
+*/
+const insertTag = async (tagArray) => {
+  let insertedTags = [];
+  try {
+    insertedTags = tagArray.map(async (tagText) => {
+      const newTag = await Tag.findOrCreate({ where: { tagText: { [Op.eq]: tagText } }, defaults: { tagText } });
+      return newTag;
+    });
+    return Promise.all(insertedTags);
+  } catch (error) {
+    logger.debug('Tag already present in database');
+  }
+};
+
+/**
+* @export
+* @function createArticle
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @returns {Object} JSON object (JSend format)
+*/
 export const createArticle = async (req, res) => {
   try {
     const { body: newArticleData, user: { id: userId } } = req;
     newArticleData.authorId = userId;
+    const newArticleTags = req.body.tags;
+
+    const tagArray = formatTags(newArticleTags);
+    delete (newArticleData.tags);
+
     const newArticle = await Article.create(newArticleData);
+
+    const newTags = await insertTag(tagArray);
+
+    newTags.forEach(async (tag) => {
+      await newArticle.addTags(tag[0].id);
+    });
+
     return res.status(201).send({ status: 'Success', data: newArticle });
   } catch (error) {
     return res.status(502).send({ status: 'Error', message: 'OOPS! an error occurred while trying to create your article, you do not seem to be logged in or signed up, log in and try again!' });

@@ -54,7 +54,7 @@ describe('Tests for article resource', () => {
         .send(invalidArticle);
       expect(res).to.have.status(422);
     });
-    it('should create an article when a current valid user', async () => {
+    it('should create an article with a valid current user token ', async () => {
       const res = await chai.request(app)
         .post('/api/articles')
         .set('Authorization', `Bearer ${userToken}`)
