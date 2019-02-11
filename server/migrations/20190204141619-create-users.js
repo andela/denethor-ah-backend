@@ -58,6 +58,16 @@ module.exports = {
             len: [8, 72]
           },
         },
+        role: {
+          allowNull: false,
+          type: Sequelize.TEXT,
+          defaultValue: 'author',
+          onDelete: 'CASCADE',
+          references: {
+            model: 'Roles',
+            key: 'name',
+          },
+        },
         bio: {
           type: Sequelize.TEXT
         },
@@ -81,6 +91,6 @@ module.exports = {
   },
   down: async (queryInterface) => {
     await queryInterface.dropTable('User');
-    queryInterface.dropTable('session');
+    await queryInterface.dropTable('session');
   }
 };

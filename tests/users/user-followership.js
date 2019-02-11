@@ -2,13 +2,15 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../index';
 import { user1, user4 } from '../mocks/mockUsers';
-import { sequelize } from '../../server/models';
+import models, { sequelize } from '../../server/models';
+import mockRoles from '../mocks/mockRoles';
 
 
 chai.use(chaiHttp);
 
 describe('Test Cases for User Followership end point', () => {
   before(async () => {
+    await models.Roles.bulkCreate(mockRoles);
     const { body: { data: { link } } } = await chai.request(app)
       .post('/api/users')
       .send(user1.signUp);
