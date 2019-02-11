@@ -1,15 +1,18 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../index';
-import { sequelize } from '../../server/models';
+import models, { sequelize } from '../../server/models';
 import { user2 } from '../mocks/mockUsers';
+import mockRoles from '../mocks/mockRoles';
 
 chai.use(chaiHttp);
 
 
 describe('Test Cases for Signup Endpoint', () => {
   let link;
-
+  before(async () => {
+    await models.Roles.bulkCreate(mockRoles);
+  });
   after(async () => {
     await Object.values(sequelize.models).map(function (model) {
       return model.destroy({ where: {}, force: true });

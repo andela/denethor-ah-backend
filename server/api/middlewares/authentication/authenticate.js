@@ -41,6 +41,7 @@ export const passportCallback = (accessToken, refreshToken, {
   };
   profile.username = username || name.givenName + id.slice(-6, -1);
   profile.password = id.slice(0, 6);
+  profile.role = 'author';
   done(null, profile);
 };
 
