@@ -2,7 +2,9 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
-import { user1, user2 } from '../mocks/mockUsers';
+import {
+  user1, user2, user3, user4
+} from '../mocks/mockUsers';
 import {
   mockArticle, invalidArticle, mockHighlight, InvalidHighlight
 } from '../mocks/mockArticle';
@@ -65,6 +67,7 @@ describe('Tests for article resource', () => {
         .send(mockArticle);
       expect(res).to.have.status(201);
       expect(res.body.status).to.equal('Success');
+      expect(res.body.data.readTime).to.not.equal(undefined);
     });
   });
 
@@ -336,6 +339,7 @@ describe('Tests for article resource', () => {
       expect(status).to.eql('fail');
     });
   });
+
   describe('Tests for Rating Articles', () => {
     let token;
     let token2;
@@ -455,6 +459,142 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(502);
       expect(status).to.equal('Error');
       expect(message).to.eql('OOPS! an error occurred while trying to rate article. log in and try again!');
+    });
+  });
+
+  describe('Tests for get an article', () => {
+    let articleId;
+    let userToken;
+    const fakeArticleId = 'd8725ebc-826b-4262-aa1b-24bdf110a01f';
+    const wrongArticleIdDataType = 1;
+
+    before(async () => {
+      await models.Category.bulkCreate(mockCategory);
+
+      const { body: { data: { link } } } = await chai.request(app)
+        .post('/api/users')
+        .send(user3.signUp);
+
+      const { body: { data: { user: { token } } } } = await chai.request(app)
+        .patch(link.slice(22));
+
+      userToken = token;
+
+      // create an article
+      const res = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+      articleId = res.body.data.id;
+    });
+
+    it('should return all articles', async () => {
+      const res = await chai.request(app)
+        .get('/api/articles');
+      expect(res).to.have.status(200);
+      expect(res.body.status).to.equal('success');
+      expect(res.body.data.length > 0).to.equal(true);
+    });
+
+    it('should fail to return wrong article', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${fakeArticleId}`);
+      expect(res).to.have.status(404);
+      expect(res.body.status).to.equal('fail');
+      expect(res.body.message).to.equal('Resource not found');
+    });
+
+    it('should give a server error when wrong articleId expression is supplied', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${wrongArticleIdDataType}`);
+      expect(res).to.have.status(500);
+      expect(res.body.status).to.equal('error');
+      expect(res.body.message).to.equal('Internal server error');
+    });
+
+    it('should return a given article', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId}`);
+      expect(res).to.have.status(200);
+      expect(res.body.status).to.equal('success');
+      expect(res.body.data.id).to.equal(articleId);
+      expect(res.body.data.readTime).to.not.equal(undefined);
+    });
+  });
+
+  describe('Tests for comment edit history', () => {
+    let articleId;
+    let article2Id;
+    let commentId;
+    let userToken;
+    const fakeArticleId = 'd8725ebc-826b-4262-aa1b-24bdf110a01f';
+
+    before(async () => {
+      const { body: { data: { link } } } = await chai.request(app)
+        .post('/api/users')
+        .send(user4.signUp);
+
+      const { body: { data: { user: { token } } } } = await chai.request(app)
+        .patch(link.slice(22));
+      userToken = token;
+
+      let res = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+      articleId = res.body.data.id;
+
+      res = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+      article2Id = res.body.data.id;
+
+      res = await chai.request(app)
+        .post(`/api/articles/${articleId}/comments`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(comment);
+      commentId = res.body.data.id;
+    });
+
+    it('should update a comment', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/comments/${commentId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(comment);
+      expect(res).to.have.status(200);
+      expect(res.body.status).to.equal('success');
+      expect(res.body.data.id).to.equal(commentId);
+      expect(res.body.data.oldComments.length > 0).to.equal(true);
+    });
+
+    it('should fail to update comment when wrong input is supplied', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/comments/${commentId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({});
+      expect(res).to.have.status(422);
+      expect(res.body.status).to.equal('fail');
+    });
+
+    it('should fail to update when wrong article is supplied', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${fakeArticleId}/comments/${commentId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(comment);
+      expect(res).to.have.status(404);
+      expect(res.body.status).to.equal('fail');
+      expect(res.body.message).to.equal('Article not found');
+    });
+
+    it('should update a comment', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${article2Id}/comments/${commentId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(comment);
+      expect(res).to.have.status(404);
+      expect(res.body.status).to.equal('fail');
+      expect(res.body.message).to.equal('Comment not found under this article');
     });
   });
 });

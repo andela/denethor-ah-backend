@@ -56,17 +56,45 @@ const insertTag = async (tagArray) => {
 };
 
 /**
- * @export
- * @function createArticle
- * @param {Object} req - request received
- * @param {Object} res - response object
- * @returns {Object} JSON object (JSend format)
- */
+* @export
+* @function getReadTime
+* @param {String} articleBody - article.body
+* @returns {String} - Read Time eg '2 minutes'
+*/
+export const getReadTime = (articleBody) => {
+  // Read time is based on the average reading speed of an adult (roughly 275 WPM).
+  // We take the total word count of a post and translate it into minutes.
+  // Then, we add 12 seconds for each inline image.
+  // TIME = DISTANCE / SPEED
+  const words = articleBody.split(' ');
+  const wordCount = words.length;
+
+  const readTimeInMinutes = wordCount / 275;
+  let readTimeInSeconds = readTimeInMinutes * 60;
+
+  const imagesFound = articleBody.split('<img'); // search for image tags
+
+  imagesFound.forEach(() => {
+    readTimeInSeconds += 12; // add 12 seconds for each inline image
+  });
+
+  let readTime = Math.ceil(readTimeInSeconds / 60); // convert back to minutes
+  readTime += readTime > 1 ? ' minutes' : ' minute';
+  return readTime;
+};
+
+/**
+* @export
+* @function createArticle
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @returns {Object} JSON object (JSend format)
+*/
 export const createArticle = async (req, res) => {
   try {
     const {
       body: {
-        slug,
+        title,
         description,
         body,
         references,
@@ -76,8 +104,12 @@ export const createArticle = async (req, res) => {
         id: userId
       }
     } = req;
-    const newArticle = await Article.create({
+    // create the slug from the title by replacing spaces with hyphen
+    // eg. "Introduction to writing" becomes "introduction-to-writing"
+    const slug = title.replace(/\s+/g, '-').toLowerCase();
+    let newArticle = await Article.create({
       slug,
+      title,
       description,
       body,
       references,
@@ -94,11 +126,15 @@ export const createArticle = async (req, res) => {
       });
     }
 
+    newArticle = newArticle.toJSON();
+    newArticle.readTime = getReadTime(newArticle.body);
+
     return res.status(201).send({
       status: 'Success',
       data: newArticle
     });
   } catch (error) {
+    console.log(error);
     return res.status(502).send({
       status: 'Error',
       message: 'OOPS! an error occurred while trying to create your article, you do not seem to be logged in or signed up, log in and try again!'
@@ -372,7 +408,7 @@ export const getHighlights = async (req, res) => {
 
 /**
  * @export
- * @function ArticleRating
+ * @function rateArticle
  * @param {Object} req - request received
  * @param {Object} res - response object
  * @returns {Object} JSON object (JSend format)
@@ -478,6 +514,69 @@ export const rateArticle = async (req, res) => {
     return res.status(502).send({
       status: 'Error',
       message: 'OOPS! an error occurred while trying to rate article. log in and try again!'
+    });
+  }
+};
+
+/**
+* @export
+* @function getAllArticles
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @returns {Object} JSON object (JSend format)
+*/
+export const getAllArticles = async (req, res) => {
+  try {
+    const articles = await Article.findAll();
+
+    const allArticles = articles.map((article) => {
+      article = article.toJSON();
+      article.readTime = getReadTime(article.body);
+      return article;
+    });
+
+    return res.status(200).send({
+      status: 'success',
+      data: allArticles
+    });
+  } catch (err) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+};
+
+/**
+* @export
+* @function getArticle
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @returns {Object} JSON object (JSend format)
+*/
+export const getArticle = async (req, res) => {
+  const { params: { id: articleId } } = req;
+  try {
+    let foundArticle = await Article.findByPk(articleId);
+
+    if (!foundArticle) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'Resource not found'
+      });
+    }
+
+    foundArticle = foundArticle.toJSON();
+    foundArticle.readTime = getReadTime(foundArticle.body);
+
+    return res.status(200).send({
+      status: 'success',
+      data: foundArticle
+    });
+  } catch (err) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error'
     });
   }
 };

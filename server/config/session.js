@@ -10,7 +10,6 @@ const {
 const conString = env === 'development'
   ? DATABASE_URL_DEV : DATABASE_URL;
 
-
 const sessionManagementConfig = (app) => {
   session.Session.prototype.login = function (user, cb) {
     const { req } = this;

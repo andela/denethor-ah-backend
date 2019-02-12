@@ -5,5 +5,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT
     },
   });
+  Comment.associate = (models) => {
+    Comment.hasMany(models.CommentHistory, {
+      foreignKey: 'commentId',
+      as: 'commentHistories'
+    });
+  };
   return Comment;
 };

@@ -1,8 +1,11 @@
+import dotenv from 'dotenv';
 import Sequelize from 'sequelize';
 import { createLogger, format, transports } from 'winston';
 import { signToken, verifyToken } from '../helpers/tokenization/tokenize';
 import { User } from '../../models';
 import { sendVerificationMail, resetPasswordVerificationMail } from '../helpers/mailer/mailer';
+
+dotenv.config();
 
 const logger = createLogger({
   level: 'debug',
@@ -43,10 +46,12 @@ export const registerUser = async (req, res) => {
     });
     const link = `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}/verify`;
 
-    try {
-      await sendVerificationMail(username, email, link);
-    } catch (error) {
-      logger.debug('Email Error::', error);
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        await sendVerificationMail(username, email, link);
+      } catch (error) {
+        logger.debug('Email Error::', error);
+      }
     }
 
     return res.status(201).send({
@@ -273,10 +278,12 @@ export const resetPasswordVerification = async (req, res) => {
       username
     } = foundUser;
 
-    try {
-      await resetPasswordVerificationMail(username, foundUser.email, token);
-    } catch (error) {
-      logger.debug('Email Error::', error);
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        await resetPasswordVerificationMail(username, foundUser.email, token);
+      } catch (error) {
+        logger.debug('Email Error::', error);
+      }
     }
 
     return res.status(200).send({
