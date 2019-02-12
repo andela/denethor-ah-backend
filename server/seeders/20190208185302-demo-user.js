@@ -15,6 +15,7 @@ module.exports = {
       email: 'chubi.best@example.com',
       password: 'password',
       role: 'admin',
+      isVerified: true,
       createdAt: new Date(),
       updatedAt: new Date()
     }], {}));

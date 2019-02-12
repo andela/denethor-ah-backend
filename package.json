@@ -4,9 +4,9 @@
   "description": "A Social platform for the creative at heart",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist/ && cp index.js server/ && babel server/ -d dist/ --ignore server/test",
-    "start": "NODE_ENV=production npm run migration && npm run build && node dist",
-    "test": "export NODE_ENV=test && npm run migration && nyc mocha --require @babel/register tests/**/index.spec.js --timeout 5000 --exit",
+    "build": "rm -rf dist/ && babel server/ -d dist/server/ && babel index.js -d dist/",
+    "start": "NODE_ENV=production npm run migration && npm run seed && npm run build && node dist",
+    "test": "export NODE_ENV=test && npm run migration && nyc mocha --require @babel/register tests/**/*.spec.js --timeout 5000 --exit",
     "lint": "eslint",
     "start:dev": "NODE_ENV=development && nodemon --exec babel-node index.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
