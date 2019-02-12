@@ -597,3 +597,98 @@ export const getArticle = async (req, res) => {
     });
   }
 };
+
+/**
+ * @export
+ * @function updateArticle
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const updateArticle = async (req, res) => {
+  try {
+    const {
+      body,
+      params: {
+        articleId
+      },
+      user: {
+        id: userId
+      }
+    } = req;
+
+    const articleAuthor = await Article.findOne({
+      where: {
+        id: {
+          [Op.eq]: articleId
+        },
+        authorId: {
+          [Op.eq]: userId
+        }
+      }
+    });
+    if (!articleAuthor) {
+      return res.status(401).send({
+        status: 'fail',
+        message: "Sorry you can't edit this article"
+      });
+    }
+    const updatedArticle = await articleAuthor.update(
+      body, { returning: true, plain: true }
+    );
+
+    return res.status(200).send({
+      status: 'success',
+      message: 'Yaay! You just updated this article',
+      updatedArticle
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'Error',
+      message: 'OOPS! an error occurred while trying to update this article. log in and try again!'
+    });
+  }
+};
+
+
+/**
+ * @export
+ * @function deleteArticle
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const deleteArticle = async (req, res) => {
+  const { params: { articleId }, user: { id: userId, role } } = req;
+  try {
+    const foundArticle = await Article.findOne({
+      where: {
+        id: { [Op.eq]: articleId }
+      }
+    });
+    if (!foundArticle) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'Article not found'
+      });
+    }
+    if ((foundArticle.authorId !== userId) && (role !== 'admin')) {
+      return res.status(401).send({
+        status: 'fail',
+        message: 'Sorry not authorized'
+      });
+    }
+
+    await foundArticle.destroy();
+
+    return res.status(200).send({
+      status: 'success',
+      message: 'Article deleted successfully',
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'Error',
+      message: 'OOPS! an error occurred while trying to delete this article. log in and try again!'
+    });
+  }
+};
