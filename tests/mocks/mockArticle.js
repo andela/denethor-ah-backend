@@ -15,6 +15,13 @@ export const invalidArticle = {
   references: ['princess.com', 'example.com'],
 };
 
+export const invalidUpdateArticle = {
+  slug: 'Oops',
+  description: 'Just',
+  body: 'Just Saying',
+  categoryId: 0
+};
+
 export const mockHighlight = {
   highlight: 'Mock Highlight',
   comment: 'Mock Comment'
