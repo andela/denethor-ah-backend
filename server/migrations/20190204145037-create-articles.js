@@ -20,6 +20,13 @@ module.exports = {
       },
       type: Sequelize.TEXT
     },
+    title: {
+      allowNull: {
+        args: false,
+        msg: 'Please give title'
+      },
+      type: Sequelize.TEXT
+    },
     description: {
       allowNull: {
         args: false,

@@ -14,7 +14,8 @@
     "undo:migration": "./node_modules/.bin/babel-node ./node_modules/.bin/sequelize db:migrate:undo:all",
     "migration": "npm run undo:migration && npm run migrate",
     "seed": "node_modules/.bin/sequelize db:seed:all",
-    "undo:seed": "node_modules/.bin/sequelize db:seed:undo:all"
+    "undo:seed": "node_modules/.bin/sequelize db:seed:undo:all",
+    "seed:dev": "export NODE_ENV=development&& babel-node ./server/seeds/index.js --preset-env"
   },
   "author": "Andela Simulations Programme",
   "license": "MIT",

@@ -13,7 +13,6 @@ module.exports = {
       references: {
         model: 'User',
         key: 'id',
-        as: 'userId'
       },
     },
     articleId: {
@@ -23,7 +22,6 @@ module.exports = {
       references: {
         model: 'Article',
         key: 'id',
-        as: 'articleId'
       },
     },
     rating: {
