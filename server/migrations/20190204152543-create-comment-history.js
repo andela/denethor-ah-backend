@@ -10,6 +10,7 @@ module.exports = {
       commentId: {
         allowNull: false,
         type: Sequelize.UUID,
+        onDelete: 'CASCADE',
         references: {
           model: 'Comment',
           key: 'id',
