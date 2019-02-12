@@ -45,7 +45,7 @@ app.get('*', (req, res) => res.status(200).send({
   message: 'Route not found',
 }));
 
-app.listen(5000, function serverListner() {
+app.listen(port, function serverListner() {
   logger.debug(`Server running on port ${chalk.blue(port)}`);
 });
 export default app;

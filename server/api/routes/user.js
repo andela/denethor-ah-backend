@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import passport from 'passport';
 import {
-  registerUser, verifyUser, socialLogin, loginUser, changeRole,
-  logout, followUser, resetPasswordVerification, resetPassword, upgradeToAdmin
+  registerUser, verifyUser, socialLogin, loginUser, changeRole, listAuthors,
+  logout, followUser, resetPasswordVerification, resetPassword, upgradeToAdmin, getUser, deleteUser
 } from '../controllers/user';
 import {
   registrationValidation, loginValidation, resetPasswordValidation,
@@ -21,9 +21,7 @@ userRouter.get('/facebook', passport.authenticate('facebook', { scope: 'email' }
 userRouter.get('/twitter', passport.authenticate('twitter'));
 
 userRouter.get('/google/redirect', passport.authenticate('google', { session: false }), socialLogin);
-
 userRouter.get('/facebook/redirect', passport.authenticate('facebook', { session: false }), socialLogin);
-
 userRouter.get('/twitter/redirect', passport.authenticate('twitter', { session: false }), socialLogin);
 
 userRouter.get('/logout', logout);
@@ -31,7 +29,10 @@ userRouter.post('/resetPassword', resetPasswordValidation, resetPasswordVerifica
 userRouter.patch('/resetPassword/:token', changePasswordValidation, resetPassword);
 
 userRouter.patch('/role', passport.authenticate('jwt', { session: false }), changeRoleValidation, changeRole);
-
 userRouter.patch('/admin', passport.authenticate('jwt', { session: false }), upgradeToAdmin);
+
+userRouter.get('/', passport.authenticate('jwt', { session: false }), listAuthors);
+userRouter.get('/:id', passport.authenticate('jwt', { session: false }), getUser);
+userRouter.delete('/:id', passport.authenticate('jwt', { session: false }), deleteUser);
 
 export default userRouter;

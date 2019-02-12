@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import Sequelize from 'sequelize';
 import { createLogger, format, transports } from 'winston';
 import { signToken, verifyToken } from '../helpers/tokenization/tokenize';
-import { User } from '../../models';
+import { User, Article } from '../../models';
 import { sendVerificationMail, resetPasswordVerificationMail } from '../helpers/mailer/mailer';
 
 dotenv.config();
@@ -104,7 +104,7 @@ export const verifyUser = async (req, res) => {
       data: {
         message: 'Verification successful. You\'re all set!',
         user: {
-          username, email, token, role
+          id, username, email, token, role
         }
       }
     });
@@ -401,6 +401,109 @@ export const changeRole = async ({ body: { id, role: proposedRole } }, res) => {
     res.status(200).send({
       status: 'success',
       data: { id, username, assignedRole }
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      message: 'internal server error occured'
+    });
+  }
+};
+
+export const listAuthors = async (req, res) => {
+  try {
+    const users = await User.findAndCountAll({
+      attributes: { exclude: ['password', 'email', 'isVerified', 'updatedAt'] },
+      include: [{
+        model: Article,
+        as: 'userArticles',
+        attributes: ['id', 'slug', 'description'],
+        required: true
+      }]
+    });
+
+
+    const usersWithCount = users.rows.map((user) => {
+      user = user.toJSON();
+      user.articlesWritten = user.userArticles.length;
+      return user;
+    });
+
+    delete users.rows;
+    users.users = usersWithCount;
+    users.count = users.users.length;
+
+    res.status(200).send({
+      status: 'success',
+      data: users
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      message: 'internal server error occured'
+    });
+  }
+};
+
+export const getUser = async ({ user: { role }, params: { id } }, res) => {
+  if (role !== 'admin') {
+    return res.status(403).send({
+      status: 'fail',
+      message: 'You\'re not an admin'
+    });
+  }
+  try {
+    let user = await User.findOne({
+      where: { id: { [Op.eq]: id } },
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Article,
+        as: 'userArticles',
+        attributes: ['id']
+      }]
+    });
+
+    if (user === null) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'no user with that id'
+      });
+    }
+    user = user.toJSON();
+    user.articlesWritten = user.userArticles.length;
+
+    res.status(200).send({
+      status: 'success',
+      data: user
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      message: 'internal server error occured'
+    });
+  }
+};
+
+export const deleteUser = async ({ user: { role }, params: { id } }, res) => {
+  if (role !== 'admin') {
+    return res.status(403).send({
+      status: 'fail',
+      message: 'You\'re not an admin'
+    });
+  }
+  try {
+    const user = await User.destroy({ where: { id: { [Op.eq]: id } }, force: true });
+
+    if (!user) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'no user with that id'
+      });
+    }
+
+    res.status(200).send({
+      status: 'success',
+      data: { id, message: 'user deleted' }
     });
   } catch (error) {
     res.status(500).send({

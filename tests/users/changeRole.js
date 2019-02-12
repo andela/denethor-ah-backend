@@ -76,7 +76,7 @@ describe('Test Cases for role assignment', () => {
     const res = await chai.request(app)
       .patch('/api/users/admin')
       .set('Authorization', `Bearer ${user5token}`)
-      .send({ pass: 'denethorsRock' });
+      .send({ pass: process.env.ADMIN_PASS });
 
     const { body: { data: { id, assignedRole } } } = res;
     expect(res).to.have.status(200);

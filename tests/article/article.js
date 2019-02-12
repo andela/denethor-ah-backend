@@ -2,9 +2,7 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
-import {
-  user1, user2, user3, user4
-} from '../mocks/mockUsers';
+import { user1, user2 } from '../mocks/mockUsers';
 import {
   mockArticle, invalidArticle, mockHighlight, InvalidHighlight
 } from '../mocks/mockArticle';
@@ -15,6 +13,7 @@ import mockRoles from '../mocks/mockRoles';
 chai.use(chaiHttp);
 
 describe('Tests for article resource', () => {
+  let userToken;
   after(async () => {
     await Object.values(sequelize.models).map(function (model) {
       return model.destroy({ where: {}, force: true });
@@ -23,7 +22,6 @@ describe('Tests for article resource', () => {
   });
 
   describe('Test Cases for Create Article Endpoint', () => {
-    let userToken;
     const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6I66iMmU3MDAwLWE3MjEtNDY1OS1hMjRiLTg1M2RlNDk4ZDBjOSIsImVtYWlsIjoicHJpbmNlc3M2M0BleGFtcGxlLmNvbSIsImlhdCI6MTU0OTY1MDgzNywiZXhwIjoxNTQ5NzM3MjM3fQ.1B1I2tlmJzGBdiAmY9R_6tPdRrBXHkdW2wOYUSZ0Gbk';
 
     before(async () => {
@@ -72,15 +70,8 @@ describe('Tests for article resource', () => {
   });
 
   describe('Tests for creating comments', () => {
-    let token;
     let articleId;
     before(async () => {
-      const { body: { data: { token: userToken } } } = await chai.request(app)
-        .post('/api/users/login')
-        .send(user1.logIn);
-
-      token = userToken;
-
       const { body: { data: { id } } } = await chai.request(app)
         .post('/api/articles')
         .set('Authorization', `Bearer ${userToken}`)
@@ -92,7 +83,7 @@ describe('Tests for article resource', () => {
     it('Should create comment if all is right', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${articleId}/comments`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send(comment);
       const {
         body: { data: { commentBody, articleId: returnedArticleId } }
@@ -105,7 +96,7 @@ describe('Tests for article resource', () => {
     it('Should not create comment if longer than 140 characters', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${articleId}/comments`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send(longComment);
       const { body } = res;
       expect(res).to.have.status(422);
@@ -114,18 +105,11 @@ describe('Tests for article resource', () => {
   });
 
   describe('Tests for liking/disliking Articles', () => {
-    let token;
     let articleId;
     let articleId2;
     const fakeArticleId = 'fakeArticleId';
 
     before(async () => {
-      const { body: { data: { token: userToken } } } = await chai.request(app)
-        .post('/api/users/login')
-        .send(user1.logIn);
-
-      token = userToken;
-
       const { body: { data: { id } } } = await chai.request(app)
         .post('/api/articles')
         .set('Authorization', `Bearer ${userToken}`)
@@ -156,21 +140,21 @@ describe('Tests for article resource', () => {
     it('Should return server error when fake article id is provided', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${fakeArticleId}/likes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       expect(res).to.have.status(500);
     });
 
     it('Should return server error when fake article id is provided', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${fakeArticleId}/dislikes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       expect(res).to.have.status(500);
     });
 
     it('Should create an impression liking an article ', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${articleId}/likes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
       expect(res).to.have.status(200);
       expect(body).to.have.property('data');
@@ -181,7 +165,7 @@ describe('Tests for article resource', () => {
     it('Should update an impression unliking an article ', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${articleId}/likes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
       expect(res).to.have.status(200);
       expect(body).to.have.property('data');
@@ -192,7 +176,7 @@ describe('Tests for article resource', () => {
     it('Should create an impression liking an article ', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${articleId}/likes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
       expect(res).to.have.status(200);
       expect(body).to.have.property('data');
@@ -203,7 +187,7 @@ describe('Tests for article resource', () => {
     it('Should create impression disliking an article ', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${articleId2}/dislikes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
       expect(res).to.have.status(201);
       expect(body).to.have.property('data');
@@ -214,7 +198,7 @@ describe('Tests for article resource', () => {
     it('Should update an impression disliking an article ', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${articleId}/dislikes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
       expect(res).to.have.status(200);
       expect(body).to.have.property('data');
@@ -225,7 +209,7 @@ describe('Tests for article resource', () => {
     it('Should update an impression un-disliking an article ', async () => {
       const res = await chai.request(app)
         .patch(`/api/articles/${articleId}/dislikes`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body, body: { data }, body: { data: { message: impressionMessage } } } = res;
       expect(res).to.have.status(200);
       expect(body).to.have.property('data');
@@ -235,18 +219,10 @@ describe('Tests for article resource', () => {
   });
 
   describe('Tests for highlighting and commenting  Articles', () => {
-    let token;
     let articleId;
     let articleId2;
     const fakeArticleId = 'fakeArticleId';
     before(async () => {
-      const { body: { data: { token: userToken } } } = await chai.request(app)
-        .post('/api/users/login')
-        .send(user1.logIn);
-
-      token = userToken;
-
-
       const { body: { data: { id } } } = await chai.request(app)
         .post('/api/articles')
         .set('Authorization', `Bearer ${userToken}`)
@@ -277,7 +253,7 @@ describe('Tests for article resource', () => {
     it('Should return server error when fake article id is provided', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${fakeArticleId}/highlights`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send(mockHighlight);
       const { body: { status }, body } = res;
       expect(res).to.have.status(500);
@@ -288,7 +264,7 @@ describe('Tests for article resource', () => {
     it('Should return server error when fake article id is provided', async () => {
       const res = await chai.request(app)
         .get(`/api/articles/${fakeArticleId}/highlights`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body: { status }, body } = res;
       expect(res).to.have.status(500);
       expect(body).to.have.property('message');
@@ -298,7 +274,7 @@ describe('Tests for article resource', () => {
     it('Should create an entry of highlight and comment of an Article', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${articleId}/highlights`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send(mockHighlight);
       const { body, body: { data }, body: { data: { message } } } = res;
       expect(res).to.have.status(201);
@@ -310,7 +286,7 @@ describe('Tests for article resource', () => {
     it('Should return an input error for highlight and comment of an Article', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${articleId}/highlights`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send(InvalidHighlight);
       const { body: { status, data } } = res;
       expect(res).to.have.status(422);
@@ -321,7 +297,7 @@ describe('Tests for article resource', () => {
     it('Should return a highlight for an Article', async () => {
       const res = await chai.request(app)
         .get(`/api/articles/${articleId}/highlights`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body, body: { data }, body: { data: { message } } } = res;
       expect(res).to.have.status(200);
       expect(body).to.have.property('data');
@@ -332,7 +308,7 @@ describe('Tests for article resource', () => {
     it('Should return no highlights for an Article', async () => {
       const res = await chai.request(app)
         .get(`/api/articles/${articleId2}/highlights`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${userToken}`);
       const { body: { status }, body: { data } } = res;
       expect(res).to.have.status(404);
       expect(data).to.have.property('message');
@@ -341,7 +317,6 @@ describe('Tests for article resource', () => {
   });
 
   describe('Tests for Rating Articles', () => {
-    let token;
     let token2;
     let articleId;
     let articleId2;
@@ -350,11 +325,6 @@ describe('Tests for article resource', () => {
     const nonExistingArticleId = 'd073e097-fcec-4dd5-a29a-84e020c';
 
     before(async () => {
-      const { body: { data: { token: userToken } } } = await chai.request(app)
-        .post('/api/users/login')
-        .send(user1.logIn);
-      token = userToken;
-
       const { body: { data: { link } } } = await chai.request(app)
         .post('/api/users')
         .send(user2.signUp);
@@ -386,7 +356,7 @@ describe('Tests for article resource', () => {
     it('Should return server error if article id does not exist', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${wrongArticleId}/ratings`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({
           rating: 5
         });
@@ -425,7 +395,7 @@ describe('Tests for article resource', () => {
     it('Should not create rating if rating is higher than 5', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${articleId}/ratings`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({
           rating: 10
         });
@@ -438,7 +408,7 @@ describe('Tests for article resource', () => {
     it('Should not allow Authors rate their own Article', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${articleId}/ratings`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({
           rating: 4
         });
@@ -451,7 +421,7 @@ describe('Tests for article resource', () => {
     it('Should return error if article id is incorrrect', async () => {
       const res = await chai.request(app)
         .post(`/api/articles/${nonExistingArticleId}/ratings`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({
           rating: 5
         });
@@ -464,21 +434,11 @@ describe('Tests for article resource', () => {
 
   describe('Tests for get an article', () => {
     let articleId;
-    let userToken;
     const fakeArticleId = 'd8725ebc-826b-4262-aa1b-24bdf110a01f';
     const wrongArticleIdDataType = 1;
 
     before(async () => {
       await models.Category.bulkCreate(mockCategory);
-
-      const { body: { data: { link } } } = await chai.request(app)
-        .post('/api/users')
-        .send(user3.signUp);
-
-      const { body: { data: { user: { token } } } } = await chai.request(app)
-        .patch(link.slice(22));
-
-      userToken = token;
 
       // create an article
       const res = await chai.request(app)
@@ -526,18 +486,9 @@ describe('Tests for article resource', () => {
     let articleId;
     let article2Id;
     let commentId;
-    let userToken;
     const fakeArticleId = 'd8725ebc-826b-4262-aa1b-24bdf110a01f';
 
     before(async () => {
-      const { body: { data: { link } } } = await chai.request(app)
-        .post('/api/users')
-        .send(user4.signUp);
-
-      const { body: { data: { user: { token } } } } = await chai.request(app)
-        .patch(link.slice(22));
-      userToken = token;
-
       let res = await chai.request(app)
         .post('/api/articles')
         .set('Authorization', `Bearer ${userToken}`)
