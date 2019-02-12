@@ -7,7 +7,7 @@ import {
   createArticle, likeArticle, dislikeArticle, createHighlight, getHighlights, rateArticle,
   getAllArticles, getArticle
 } from '../controllers/article';
-
+import { reportArticle } from '../controllers/reports';
 import commentsRouter from './comment';
 
 const articlesRouter = Router();
@@ -25,5 +25,6 @@ articlesRouter.post('/:articleId/ratings', passport.authenticate('jwt', { sessio
 articlesRouter.use('/:articleId/comments', commentsRouter);
 articlesRouter.get('/', getAllArticles);
 articlesRouter.get('/:id', getArticle);
+articlesRouter.post('/:id/report', passport.authenticate('jwt', { session: false }), reportArticle);
 
 export default articlesRouter;
