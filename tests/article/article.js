@@ -3,10 +3,10 @@ import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
 import {
-  user1, user2, user3, user4
+  user1, user2, user3, user4, user5
 } from '../mocks/mockUsers';
 import {
-  mockArticle, invalidArticle, mockHighlight, InvalidHighlight
+  mockArticle, invalidArticle, mockHighlight, InvalidHighlight, invalidUpdateArticle
 } from '../mocks/mockArticle';
 import mockCategory from '../mocks/mockCategory';
 import { comment, longComment } from '../mocks/mockComments';
@@ -595,6 +595,92 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(404);
       expect(res.body.status).to.equal('fail');
       expect(res.body.message).to.equal('Comment not found under this article');
+    });
+  });
+
+  describe('Tests for Updating Articles', () => {
+    let token;
+    let token2;
+    let articleId;
+
+    const wrongArticleId = 'd073e097-fcec-4dd5-a29a-84e020cdd25f';
+    const nonExistingArticleId = 'd073e097-fcec-4dd5-a29a-84e020c';
+
+    before(async () => {
+      await models.Category.bulkCreate(mockCategory);
+      const { body: { data: { token: userToken } } } = await chai.request(app)
+        .post('/api/users/login')
+        .send(user1.logIn);
+      token = userToken;
+
+      const { body: { data: { link } } } = await chai.request(app)
+        .post('/api/users')
+        .send(user5.signUp);
+
+      const { body: { data: { user: { token: userToken2 } } } } = await chai.request(app)
+        .patch(link.slice(22));
+      token2 = userToken2;
+
+      const { body: { data: { id } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+      articleId = id;
+    });
+
+    it('Should return fail if article id does not exist', async () => {
+      const res = await chai.request(app)
+        .put(`/api/articles/${wrongArticleId}/`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(mockArticle);
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(404);
+      expect(status).to.equal('fail');
+      expect(message).to.equal('Article not found');
+    });
+
+    it('Should update article if input is correct', async () => {
+      const res = await chai.request(app)
+        .put(`/api/articles/${articleId}/`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(mockArticle);
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(201);
+      expect(status).to.equal('success');
+      expect(message).to.equal('Yaay! You just created an article');
+    });
+
+    it('Should not update article if input is incorrect', async () => {
+      const res = await chai.request(app)
+        .put(`/api/articles/${articleId}/`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ invalidUpdateArticle });
+      const { body: { status }, body } = res;
+      expect(res).to.have.status(422);
+      expect(status).to.equal('fail');
+      expect(body).to.have.property('data');
+    });
+
+    it("Should not allow Authors update another Author's Article", async () => {
+      const res = await chai.request(app)
+        .put(`/api/articles/${articleId}/`)
+        .set('Authorization', `Bearer ${token2}`)
+        .send(mockArticle);
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(401);
+      expect(status).to.equal('fail');
+      expect(message).to.equal("Sorry you can't edit this article");
+    });
+
+    it('Should return error if article id is fake', async () => {
+      const res = await chai.request(app)
+        .put(`/api/articles/${nonExistingArticleId}/`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(mockArticle);
+      const { body: { status, message } } = res;
+      expect(res).to.have.status(502);
+      expect(status).to.equal('Error');
+      expect(message).to.eql('OOPS! an error occurred while trying to rate article. log in and try again!');
     });
   });
 });

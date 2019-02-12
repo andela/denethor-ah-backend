@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import passport from 'passport';
 import {
-  newArticleValidator, createHighlightValidator, ratingValidator
+  newArticleValidator, createHighlightValidator, ratingValidator, updateArticleValidator
 } from '../middlewares/validation/article';
 import {
-  createArticle, likeArticle, dislikeArticle, createHighlight, getHighlights, rateArticle,
+  createArticle, updateArticle, likeArticle, dislikeArticle, createHighlight, getHighlights, rateArticle,
   getAllArticles, getArticle
 } from '../controllers/article';
 
@@ -13,6 +13,7 @@ import commentsRouter from './comment';
 const articlesRouter = Router();
 
 articlesRouter.post('/', passport.authenticate('jwt', { session: false }), newArticleValidator, createArticle);
+articlesRouter.put('/:articleId', passport.authenticate('jwt', { session: false }), updateArticleValidator, updateArticle);
 articlesRouter.patch('/:id/likes', passport.authenticate('jwt', { session: false }), likeArticle);
 articlesRouter.patch('/:id/dislikes', passport.authenticate('jwt', { session: false }), dislikeArticle);
 articlesRouter.post('/:id/highlights',
