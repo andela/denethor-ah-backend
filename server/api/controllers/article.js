@@ -134,7 +134,6 @@ export const createArticle = async (req, res) => {
       data: newArticle
     });
   } catch (error) {
-    console.log(error);
     return res.status(502).send({
       status: 'Error',
       message: 'OOPS! an error occurred while trying to create your article, you do not seem to be logged in or signed up, log in and try again!'
@@ -577,6 +576,59 @@ export const getArticle = async (req, res) => {
     return res.status(500).send({
       status: 'error',
       message: 'Internal server error'
+    });
+  }
+};
+  /**
+ * @export
+ * @function updateArticle
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const updateArticle = async (req, res) => {
+  try {
+    const {
+      body,
+      params: {
+        articleId
+      },
+      user: {
+        id: userId
+      }
+    } = req;
+
+    const articleAuthor = await Article.findOne({
+      where: {
+        id: {
+          [Op.eq]: articleId
+        },
+        authorId: {
+          [Op.eq]: userId
+        }
+      }
+    });
+    if (!articleAuthor) {
+      return res.status(401).send({
+        status: 'fail',
+        message: "Sorry you can't edit this article"
+      });
+    }
+    let updatedArticle = await Article.update(
+      body, { where: { id: { [Op.eq]: articleId } }, returning: true, plain: true }
+    );
+
+    updatedArticle = updatedArticle[1].toJSON();
+
+    return res.status(200).send({
+      status: 'success',
+      message: 'Yaay! You just updated this article',
+      updatedArticle
+    });
+  } catch (e) {
+    return res.status(502).send({
+      status: 'Error',
+      message: 'OOPS! an error occurred while trying to update this article. log in and try again!'
     });
   }
 };
