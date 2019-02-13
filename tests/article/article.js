@@ -3,7 +3,7 @@ import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
 import {
-  user1, user2, user5, user6, user8
+  user1, user2, user3, user5, user6, user8
 } from '../mocks/mockUsers';
 import {
   mockArticle, invalidArticle, mockHighlight, InvalidHighlight, invalidUpdateArticle
@@ -16,6 +16,7 @@ chai.use(chaiHttp);
 
 describe('Tests for article resource', () => {
   let userToken;
+  let userToken4;
   let articleId;
   after(async () => {
     await Object.values(sequelize.models).map(function (model) {
@@ -72,7 +73,10 @@ describe('Tests for article resource', () => {
     });
   });
 
-  describe('Tests for creating comments', () => {
+  describe('Tests cases for comments', () => {
+    let commentId;
+    const fakeCommentId = 'fakeCommentId';
+    const fakeUUIDCommentId = 'ae43b025-39a3-4514-b26d-eb9a3f11328f';
     before(async () => {
       const { body: { data: { id } } } = await chai.request(app)
         .post('/api/articles')
@@ -80,6 +84,15 @@ describe('Tests for article resource', () => {
         .send(mockArticle);
 
       articleId = id;
+
+      const { body: { data: { link: newLink } } } = await chai.request(app)
+        .post('/api/users')
+        .send(user3.signUp);
+
+      const { body: { data: { user: { token: newToken } } } } = await chai.request(app)
+        .patch(newLink.slice(22));
+
+      userToken4 = newToken;
     });
 
     it('Should create comment if all is right', async () => {
@@ -88,8 +101,9 @@ describe('Tests for article resource', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send(comment);
       const {
-        body: { data: { commentBody, articleId: returnedArticleId } }
+        body: { data: { id: newCommentId, commentBody, articleId: returnedArticleId } }
       } = res;
+      commentId = newCommentId;
       expect(res).to.have.status(201);
       expect(commentBody).to.eql(comment.commentBody);
       expect(returnedArticleId).to.eql(articleId);
@@ -103,6 +117,69 @@ describe('Tests for article resource', () => {
       const { body } = res;
       expect(res).to.have.status(422);
       expect(body).to.not.have.property('data');
+    });
+
+    it('Should return error for unauthorized user', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/comments/${commentId}`)
+        .set('Authorization', `Bearer ${userToken4}`);
+      const { body, body: { status, data: { message } } } = res;
+      expect(res).to.have.status(401);
+      expect(body).to.have.property('data');
+      expect(status).to.eql('fail');
+      expect(message).to.eql('Not authorized');
+    });
+
+    it('Should delete comment', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/comments/${commentId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body, body: { status, data: { message } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(status).to.eql('success');
+      expect(message).to.eql('Comment was deleted successfully');
+    });
+
+    it('Should return error when no article Id', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/ /comments/${commentId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body, body: { status, data } } = res;
+      expect(res).to.have.status(422);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('input');
+      expect(status).to.eql('fail');
+    });
+
+    it('Should return error when no comment Id', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/comments/ /`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body, body: { status, data } } = res;
+      expect(res).to.have.status(422);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('input');
+      expect(status).to.eql('fail');
+    });
+
+    it('Should return error when fake comment Id is supplied', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/comments/${fakeCommentId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status } } = res;
+      expect(res).to.have.status(500);
+      expect(status).to.eql('error');
+    });
+
+    it('Should return error when fake UUID comment Id is supplied', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/comments/${fakeUUIDCommentId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status, data: { message } } } = res;
+      expect(res).to.have.status(404);
+      expect(status).to.eql('fail');
+      expect(message).to.eql('No comment was found');
     });
   });
 
@@ -219,9 +296,12 @@ describe('Tests for article resource', () => {
     });
   });
 
-  describe('Tests for highlighting and commenting  Articles', () => {
+  describe('Tests for highlighting and commenting Articles', () => {
     let articleId2;
+    let highlightId;
     const fakeArticleId = 'fakeArticleId';
+    const fakeHighlightId = 'fakeHighlightId';
+    const fakeUUIDHighlightId = '1234';
     before(async () => {
       const { body: { data: { id } } } = await chai.request(app)
         .post('/api/articles')
@@ -277,6 +357,8 @@ describe('Tests for article resource', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send(mockHighlight);
       const { body, body: { data }, body: { data: { message } } } = res;
+      const { highlight: { id: newhighlightId } } = data;
+      highlightId = newhighlightId;
       expect(res).to.have.status(201);
       expect(body).to.have.property('data');
       expect(data).to.have.property('highlight');
@@ -313,6 +395,126 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(404);
       expect(data).to.have.property('message');
       expect(status).to.eql('fail');
+    });
+
+    it('Should update an entry of highlight and comment on an Article', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/highlights/${highlightId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ comment: 'Testing highlight' });
+      const { body, body: { data }, body: { data: { message } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('highlight');
+      expect(message).to.eql('Your highlight updated successfully');
+    });
+
+    it('Should return error when no article Id', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/ /highlights/${highlightId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ comment: 'Testing highlight' });
+      const { body, body: { status, data } } = res;
+      expect(res).to.have.status(422);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('input');
+      expect(status).to.eql('fail');
+    });
+
+    it('Should return error when no highligh Id', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/highlights/ /`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ comment: 'Testing highlight' });
+      const { body, body: { status, data } } = res;
+      expect(res).to.have.status(422);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('input');
+      expect(status).to.eql('fail');
+    });
+
+    it('Should return error when fake highlight Id is supplied', async () => {
+      const res = await chai.request(app)
+        .patch(`/api/articles/${articleId}/highlights/${fakeHighlightId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ comment: 'Testing highlight' });
+      const { body: { status } } = res;
+      expect(res).to.have.status(500);
+      expect(status).to.eql('error');
+    });
+
+    it('Should return error when fake UUID highlight Id is supplied', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/highlights/${fakeUUIDHighlightId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ comment: 'Testing highlight' });
+      const { body: { status, data: { message } } } = res;
+      expect(res).to.have.status(404);
+      expect(status).to.eql('fail');
+      expect(message).to.eql('No highlight was found');
+    });
+
+    it('Should return error for unauthorized user', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/highlights/${highlightId}`)
+        .set('Authorization', `Bearer ${userToken4}`);
+      const { body, body: { status, data: { message } } } = res;
+      expect(res).to.have.status(401);
+      expect(body).to.have.property('data');
+      expect(status).to.eql('fail');
+      expect(message).to.eql('Not authorized');
+    });
+
+    it('Should delete an entry of highlight and comment of an Article', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/highlights/${highlightId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body, body: { status, data: { message } } } = res;
+      expect(res).to.have.status(200);
+      expect(body).to.have.property('data');
+      expect(status).to.eql('success');
+      expect(message).to.eql('Highlight was deleted successfully');
+    });
+
+    it('Should return error when no article Id', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/ /highlights/${highlightId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body, body: { status, data } } = res;
+      expect(res).to.have.status(422);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('input');
+      expect(status).to.eql('fail');
+    });
+
+    it('Should return error when no highligh Id', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/highlights/ /`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body, body: { status, data } } = res;
+      expect(res).to.have.status(422);
+      expect(body).to.have.property('data');
+      expect(data).to.have.property('input');
+      expect(status).to.eql('fail');
+    });
+
+    it('Should return error when fake highlight Id is supplied', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/highlights/${fakeHighlightId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status } } = res;
+      expect(res).to.have.status(500);
+      expect(status).to.eql('error');
+    });
+
+    it('Should return error when fake UUID highlight Id is supplied', async () => {
+      const res = await chai.request(app)
+        .delete(`/api/articles/${articleId}/highlights/${fakeUUIDHighlightId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status, data: { message } } } = res;
+      expect(res).to.have.status(404);
+      expect(status).to.eql('fail');
+      expect(message).to.eql('No highlight was found');
     });
   });
 

@@ -63,3 +63,55 @@ export const updateComment = async (req, res) => {
     });
   }
 };
+
+/**
+ * @export
+ * @function deleteComment
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const deleteComment = async (req, res) => {
+  try {
+    const { params: { articleId, commentId }, user: { id: userId, role } } = req;
+    const foundComment = await Comment.findOne({
+      where: {
+        id: { [Op.eq]: commentId },
+        articleId: { [Op.eq]: articleId },
+      }
+    });
+
+    if (!foundComment) {
+      return res.status(404).send({
+        status: 'fail',
+        data: {
+          message: 'No comment was found',
+        }
+      });
+    }
+
+    if (role !== 'admin' && foundComment.userId !== userId) {
+      return res.status(401).send({
+        status: 'fail',
+        data: {
+          message: 'Not authorized'
+        }
+      });
+    }
+
+    await foundComment.destroy();
+
+    return res.status(200).send({
+      status: 'success',
+      data: {
+        message: 'Comment was deleted successfully',
+        comment: null
+      }
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal Server error occured'
+    });
+  }
+};

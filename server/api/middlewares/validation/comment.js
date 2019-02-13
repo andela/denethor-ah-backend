@@ -1,5 +1,7 @@
 import Joi from 'joi';
-import { newCommentSchema, updateCommentSchema } from './schemas/comment';
+import {
+  newCommentSchema, updateCommentSchema, deleteCommentRequestSchema
+} from './schemas/comment';
 
 export const newCommentValidator = (
   { params: { articleId }, body: { commentBody } }, res, next
@@ -25,4 +27,17 @@ export const updateCommentValidator = (
     .catch((error) => {
       res.status(422).send({ status: 'fail', message: error });
     });
+};
+
+export const deleteCommentValidator = (req, res, next) => {
+  const { params: { articleId, commentId } } = req;
+
+  Joi.validate({ articleId, commentId }, deleteCommentRequestSchema)
+    .then(() => next())
+    .catch(error => res.status(422).send({
+      status: 'fail',
+      data: {
+        input: error.details[0].message,
+      }
+    }));
 };

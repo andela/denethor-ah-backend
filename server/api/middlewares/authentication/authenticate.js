@@ -64,7 +64,7 @@ passport.use(new JWTStrategy(options, async (payload, done) => {
     const user = await User.findByPk(payload.id);
 
     if (!user) {
-      return done(new Error('Authentication failed'), false);
+      return done('Unauthorized', false);
     }
 
     return done(null, user);
