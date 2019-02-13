@@ -27,6 +27,16 @@ module.exports = {
         as: 'articleId',
       },
     },
+    userId: {
+      allowNull: false,
+      type: Sequelize.UUID,
+      onDelete: 'CASCADE',
+      references: {
+        model: 'User',
+        key: 'id',
+        as: 'userId',
+      },
+    },
     commentBody: {
       allowNull: {
         args: false,

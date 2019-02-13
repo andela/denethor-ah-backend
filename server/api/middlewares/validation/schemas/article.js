@@ -10,8 +10,6 @@ const references = Joi.array().items(Joi.string());
 const categoryId = Joi.number().required();
 const updateCategoryId = Joi.number().integer().min(1);
 const tags = Joi.string();
-const highlight = Joi.string().trim().min(1).required();
-const comment = Joi.string().trim().min(1).required();
 const rating = Joi.number().integer().min(1).max(5)
   .required();
 
@@ -32,5 +30,4 @@ export const updateArticleSchema = {
   tags
 };
 
-export const createHighlightSchema = { highlight, comment };
 export const ratingSchema = { rating };
