@@ -5,6 +5,7 @@ import {
   transports
 } from 'winston';
 import {
+  User,
   Article,
   LikeDislike,
   Tag,
@@ -524,9 +525,19 @@ export const rateArticle = async (req, res) => {
 * @param {Object} res - response object
 * @returns {Object} JSON object (JSend format)
 */
-export const getAllArticles = async (req, res) => {
+export const getAllArticles = async ({ query: { n = 0 } }, res) => {
+  const limit = 10;
+  const offset = Number(n) * limit;
   try {
-    const articles = await Article.findAll();
+    const articles = await Article.findAll({
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['username', 'imageUrl']
+      }],
+      limit,
+      offset
+    });
 
     const allArticles = articles.map((article) => {
       article = article.toJSON();
@@ -556,7 +567,14 @@ export const getAllArticles = async (req, res) => {
 export const getArticle = async (req, res) => {
   const { params: { id: articleId } } = req;
   try {
-    let foundArticle = await Article.findByPk(articleId);
+    let foundArticle = await Article.findOne({
+      where: { id: { [Op.eq]: articleId } },
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['firstname', 'lastname', 'username', 'imageUrl']
+      }]
+    });
 
     if (!foundArticle) {
       return res.status(404).send({
