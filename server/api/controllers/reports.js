@@ -17,12 +17,18 @@ export const reportArticle = async (req, res) => {
     };
     const article = await Article.findById(articleId);
     if (!article) {
-      throw new Error('Article is not found');
+      return res.status(404).send({
+        status: 'fail',
+        message: 'No article with that id'
+      });
     }
 
     const articleReport = await ArticleReports.findOne({ where: { userId, articleId }, defaults: { newReport } });
     if (articleReport) {
-      throw new Error(`Hello ${req.user.firstname} You've already reported this article`);
+      return res.status(422).send({
+        status: 'fail',
+        message: 'You already reported this article'
+      });
     }
     await ArticleReports.create(newReport);
     const reportCount = await ArticleReports.findAndCountAll({ where: { articleId }, offset: 10, limit: 2 });
