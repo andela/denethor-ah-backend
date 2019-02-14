@@ -41,7 +41,6 @@ export const passportCallback = (accessToken, refreshToken, {
   };
   profile.username = username || name.givenName + id.slice(-6, -1);
   profile.password = id.slice(0, 6);
-  profile.role = 'author';
   done(null, profile);
 };
 
@@ -49,7 +48,7 @@ const profileFields = ['id', 'displayName', 'name', 'gender', 'profileUrl', 'ema
 
 const googleCredentials = credentials('google', googleClientID, googleClientSecret);
 const facebookCredentials = { ...credentials('facebook', facebookAppID, facebookAppSecret), profileFields };
-const twitterCredentials = { ...credentials('twitter'), includeEmail: true };
+const twitterCredentials = { ...credentials('twitter'), includeEmail: true, proxy: true };
 
 
 const googleStrategy = new GoogleStrategy(googleCredentials, passportCallback);
