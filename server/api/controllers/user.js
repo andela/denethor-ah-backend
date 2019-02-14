@@ -118,24 +118,39 @@ export const verifyUser = async (req, res) => {
 
 export const socialLogin = async (req, res) => {
   const {
-    firstname, lastname, username, email, password, imageUrl, role
+    firstname, lastname, username, email, password, imageUrl
   } = req.user;
   try {
-    const { id } = await User.findOrCreate({
+    const [{ id, role }, isNew] = await User.findOrCreate({
       where: { email },
       defaults: {
-        firstname, lastname, username, password, imageUrl, isVerified: true, role
+        firstname, lastname, username, password, imageUrl
       }
     });
 
-    const token = signToken({ id, email, role });
+    let token;
+    const paramToken = isNew && signToken({ email }, '10m');
+
+    if (process.env.NODE_ENV === 'production' && isNew) {
+      try {
+        await resetPasswordVerificationMail(username, email, paramToken);
+      } catch (error) {
+        logger.debug('Email Error::', error);
+      }
+    } else {
+      token = signToken({ id, email, role });
+    }
 
     return res.status(200).send({
       status: 'success',
       data: {
-        message: 'login successful',
-        user: { username, email, role },
-        token
+        message: `${isNew ? `An email has been sent to ${email}. Follow contained instructions to verify your account and create password.` : 'Login Successful.'}`,
+        ...(
+          isNew ? { link: `${req.protocol}://${req.headers.host}/api/users/resetPassword/${paramToken}` }
+            : {
+              token, username, email, role
+            }
+        )
       }
     });
   } catch (e) {
@@ -322,15 +337,9 @@ export const resetPassword = async (req, res) => {
     }
 
     const updatedUser = await foundUser.update(
+      { password, ...(!foundUser.isVerified && { isVerified: true }) },
       {
-        password
-      },
-      {
-        where: {
-          email: {
-            [Op.eq]: email
-          }
-        },
+        where: { email: { [Op.eq]: email } },
         returning: true,
         plain: true
       }
