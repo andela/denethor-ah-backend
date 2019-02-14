@@ -4,7 +4,7 @@ import sinon from 'sinon';
 import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
-import { user, mockStrategy } from '../mocks/mockStrategy';
+import { mockStrategy } from '../mocks/mockStrategy';
 import mockRoles from '../mocks/mockRoles';
 
 chai.use(chaiHttp);
@@ -23,30 +23,12 @@ describe('Test Cases for the social login endpoints', () => {
     sequelize.queryInterface.sequelize.query('TRUNCATE TABLE session CASCADE;').then(() => done());
   });
 
-  it('Should create account for user once Google returns payload', async () => {
+  it('Should create account for user once platform returns payload', async () => {
     const res = await chai.request(app)
       .get('/api/users/google/redirect');
-    const { body: { data } } = res;
+    const { body: { status, data } } = res;
     expect(res).to.have.status(200);
-    expect(data).to.have.property('token');
-    expect(data.user.email).to.eql(user.emails[0].value);
-  });
-
-  it('Should create account for user once Facebook returns payload', async () => {
-    const res = await chai.request(app)
-      .get('/api/users/google/redirect');
-    const { body: { data } } = res;
-    expect(res).to.have.status(200);
-    expect(data).to.have.property('token');
-    expect(data.user.email).to.eql(user.emails[0].value);
-  });
-
-  it('Should create account for user once Twitter returns payload', async () => {
-    const res = await chai.request(app)
-      .get('/api/users/google/redirect');
-    const { body: { data } } = res;
-    expect(res).to.have.status(200);
-    expect(data).to.have.property('token');
-    expect(data.user.email).to.eql(user.emails[0].value);
+    expect(data).to.have.property('link');
+    expect(status).to.eql('success');
   });
 });
