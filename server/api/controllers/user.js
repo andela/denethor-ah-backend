@@ -61,7 +61,7 @@ export const registerUser = async (req, res) => {
         link
       },
     });
-  } catch (e) {console.log(e);
+  } catch (e) {
     res.status(500).send({
       status: 'error',
       message: 'Internal server error occured.'
