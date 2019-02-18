@@ -1,9 +1,11 @@
+import swagger from 'swagger-ui-express';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
 import sessionManagement from './server/config/session';
+import swaggerDocument from './swagger';
 
 import auth from './server/api/middlewares/authentication/authenticate';
 import userRoute from './server/api/routes/user';
@@ -34,6 +36,7 @@ app.use(express.static(`${__dirname}/public`));
 app.use(auth.initialize());
 app.use('/api/users', userRoute);
 app.use('/api/articles', articleRoute);
+app.use('/docs', swagger.serve, swagger.setup(swaggerDocument));
 
 app.get('/', (req, res) => res.status(200).send({
   status: 'connection successful',
