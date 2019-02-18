@@ -6,6 +6,14 @@ export const mockArticle = {
   categoryId: 1
 };
 
+export const mockArticle2 = {
+  title: 'The girl named Princess',
+  description: 'The girl named Princess fell from the skies and just disappeared',
+  body: 'When Princess was a little girl, she liked to read books and ...',
+  references: ['princess.com', 'example.com'],
+  categoryId: 7
+};
+
 export const mockComment = {
   commentBody: 'I comment by reserve'
 };

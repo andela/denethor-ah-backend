@@ -10,6 +10,7 @@ import swaggerDocument from './server/docs/swagger';
 import auth from './server/api/middlewares/authentication/authenticate';
 import userRoute from './server/api/routes/user';
 import articleRoute from './server/api/routes/article';
+import bookmarkRoutes from './server/api/routes/bookmark';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use(auth.initialize());
 app.use('/api/users', userRoute);
 app.use('/api/articles', articleRoute);
 app.use('/docs', swagger.serve, swagger.setup(swaggerDocument));
+app.use('/api', bookmarkRoutes);
 
 app.get('/', (req, res) => res.status(200).send({
   status: 'connection successful',

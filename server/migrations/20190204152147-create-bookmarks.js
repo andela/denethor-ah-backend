@@ -8,15 +8,13 @@ module.exports = {
       type: Sequelize.UUID,
       defaultValue: Sequelize.literal('uuid_generate_v4()')
     },
-    articleId: {
+    bookmarkTitle: {
       allowNull: false,
-      type: Sequelize.UUID,
-      onDelete: 'CASCADE',
-      references: {
-        model: 'Article',
-        key: 'id',
-        as: 'articleId',
-      },
+      type: Sequelize.STRING
+    },
+    articleUrl: {
+      allowNull: false,
+      type: Sequelize.TEXT
     },
     userId: {
       allowNull: false,
@@ -26,12 +24,16 @@ module.exports = {
         model: 'User',
         key: 'id',
         as: 'userId',
-      },
+      }
     },
     createdAt: {
       allowNull: false,
       type: Sequelize.DATE
     },
+    updatedAt: {
+      allowNull: false,
+      type: Sequelize.DATE
+    }
   }),
 
   down: queryInterface => queryInterface.dropTable('Bookmark')

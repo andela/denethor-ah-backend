@@ -43,10 +43,6 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'articleId',
       as: 'articleRatings',
     });
-    Article.hasMany(models.Bookmark, {
-      foreignKey: 'articleId',
-      as: 'articleBookmarks',
-    });
     Article.belongsToMany(models.Tag, {
       foreignKey: 'articleId',
       otherKey: 'tagId',
