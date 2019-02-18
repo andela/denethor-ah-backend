@@ -758,53 +758,7 @@ describe('Tests for article resource', () => {
 
       const { body: { data: { user: { token: userToken3 } } } } = await chai.request(app)
         .patch(userVerificationLink.slice(22));
-      user8Token = userToken3;
-    });
 
-    it('Should report an article when a valid user reports it', async () => {
-      const res = await chai.request(app)
-        .post(`/api/articles/${articleId}/report`)
-        .set('Authorization', `Bearer ${user8Token}`);
-      expect(res).to.have.status(201);
-      expect(res.body).to.have.property('status');
-      expect(res.body).to.have.property('message');
-      expect(res.body.status).to.equal('Success');
-    });
-    it('Should return an error when a user tries to report the same article twice', async () => {
-      const res = await chai.request(app)
-        .post(`/api/articles/${articleId}/report`)
-        .set('Authorization', `Bearer ${user8Token}`);
-      expect(res).to.have.status(422);
-      expect(res.body.status).to.equal('fail');
-      expect(res.body.message).to.equal('You already reported this article');
-    });
-    it('Should return an error if the provided article has been deleted', async () => {
-      await models.Article.destroy({ where: { id: articleId }, force: true });
-      const res = await chai.request(app)
-        .post(`/api/articles/${articleId}/report`)
-        .set('Authorization', `Bearer ${user8Token}`);
-      expect(res).to.have.status(404);
-      expect(res.body.status).to.equal('fail');
-      expect(res.body.message).to.equal('No article with that id');
-    });
-    it('Should not report an article when a user is invalid', async () => {
-      const res = await chai.request(app)
-        .post(`/api/articles/${articleId}/report`)
-        .set('Authorization', `Bearer ${fakeToken}`);
-      expect(res).to.have.status(401);
-    });
-  });
-
-  describe('Tests for reporting an article', () => {
-    let user8Token;
-    const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6I66iMmU3MDAwLWE3MjEtNDY1OS1hMjRiLTg1M2RlNDk4ZDBjOSIsImVtYWlsIjoicHJpbmNlc3M2M0BleGFtcGxlLmNvbSIsImlhdCI6MTU0OTY1MDgzNywiZXhwIjoxNTQ5NzM3MjM3fQ.1B1I2tlmJzGBdiAmY9R_6tPdRrBXHkdW2wOYUSZ0Gbk';
-    before(async () => {
-      const { body: { data: { link: userVerificationLink } } } = await chai.request(app)
-        .post('/api/users')
-        .send(user8.signUp);
-
-      const { body: { data: { user: { token: userToken3 } } } } = await chai.request(app)
-        .patch(userVerificationLink.slice(22));
       user8Token = userToken3;
     });
 
