@@ -1,5 +1,5 @@
 import {
-  Comment, Article, Sequelize
+  Comment, Article, LikeComment, Sequelize
 } from '../../models';
 
 import informBookmarkers from '../helpers/notification/bookmarkers';
@@ -111,6 +111,40 @@ export const deleteComment = async (req, res) => {
         message: 'Comment was deleted successfully',
         comment: null
       }
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal Server error occured'
+    });
+  }
+};
+
+/**
+ * @export
+ * @function likeComment
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const likeComment = async (req, res) => {
+  try {
+    const { params: { commentId }, user: { id: userId } } = req;
+
+    await LikeComment.findOrCreate({
+      where: { commentId, userId }
+    }).spread((like, created) => {
+      if (created) {
+        return res.status(201).send({
+          status: 'success',
+          message: 'You liked this comment!',
+        });
+      }
+      like.destroy();
+      return res.status(200).send({
+        status: 'success',
+        message: 'You unliked this comment!'
+      });
     });
   } catch (e) {
     return res.status(500).send({

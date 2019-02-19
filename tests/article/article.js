@@ -144,6 +144,7 @@ describe('Tests for article resource', () => {
 
   describe('Tests cases for comments', () => {
     let commentId;
+    let commentId2;
     const fakeCommentId = 'fakeCommentId';
     const fakeUUIDCommentId = 'ae43b025-39a3-4514-b26d-eb9a3f11328f';
     before(async () => {
@@ -162,93 +163,134 @@ describe('Tests for article resource', () => {
         .patch(newLink.slice(22));
 
       userToken4 = newToken;
-    });
 
-    it('Should create comment if all is right', async () => {
-      const res = await chai.request(app)
+      const { body: { data: { id: newCommentId } } } = await chai.request(app)
         .post(`/api/articles/${articleId}/comments`)
         .set('Authorization', `Bearer ${userToken}`)
-        .send(comment);
-      const {
-        body: { data: { id: newCommentId, commentBody, articleId: returnedArticleId } }
-      } = res;
-      commentId = newCommentId;
-      expect(res).to.have.status(201);
-      expect(commentBody).to.eql(comment.commentBody);
-      expect(returnedArticleId).to.eql(articleId);
+        .send({
+          commentBody: 'Nice Article'
+        });
+      commentId2 = newCommentId;
     });
 
-    it('Should not create comment if longer than 140 characters', async () => {
-      const res = await chai.request(app)
-        .post(`/api/articles/${articleId}/comments`)
-        .set('Authorization', `Bearer ${userToken}`)
-        .send(longComment);
-      const { body } = res;
-      expect(res).to.have.status(422);
-      expect(body).to.not.have.property('data');
-    });
+    describe('Tests create, delete and update for comments', () => {
+      it('Should create comment if all is right', async () => {
+        const res = await chai.request(app)
+          .post(`/api/articles/${articleId}/comments`)
+          .set('Authorization', `Bearer ${userToken}`)
+          .send(comment);
+        const {
+          body: { data: { id: newCommentId, commentBody, articleId: returnedArticleId } }
+        } = res;
+        commentId = newCommentId;
+        expect(res).to.have.status(201);
+        expect(commentBody).to.eql(comment.commentBody);
+        expect(returnedArticleId).to.eql(articleId);
+      });
 
-    it('Should return error for unauthorized user', async () => {
-      const res = await chai.request(app)
-        .delete(`/api/articles/${articleId}/comments/${commentId}`)
-        .set('Authorization', `Bearer ${userToken4}`);
-      const { body, body: { status, data: { message } } } = res;
-      expect(res).to.have.status(401);
-      expect(body).to.have.property('data');
-      expect(status).to.eql('fail');
-      expect(message).to.eql('Not authorized');
-    });
+      it('Should not create comment if longer than 140 characters', async () => {
+        const res = await chai.request(app)
+          .post(`/api/articles/${articleId}/comments`)
+          .set('Authorization', `Bearer ${userToken}`)
+          .send(longComment);
+        const { body } = res;
+        expect(res).to.have.status(422);
+        expect(body).to.not.have.property('data');
+      });
 
-    it('Should delete comment', async () => {
-      const res = await chai.request(app)
-        .delete(`/api/articles/${articleId}/comments/${commentId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      const { body, body: { status, data: { message } } } = res;
-      expect(res).to.have.status(200);
-      expect(body).to.have.property('data');
-      expect(status).to.eql('success');
-      expect(message).to.eql('Comment was deleted successfully');
-    });
+      it('Should return error for unauthorized user', async () => {
+        const res = await chai.request(app)
+          .delete(`/api/articles/${articleId}/comments/${commentId}`)
+          .set('Authorization', `Bearer ${userToken4}`);
+        const { body, body: { status, data: { message } } } = res;
+        expect(res).to.have.status(401);
+        expect(body).to.have.property('data');
+        expect(status).to.eql('fail');
+        expect(message).to.eql('Not authorized');
+      });
 
-    it('Should return error when no article Id', async () => {
-      const res = await chai.request(app)
-        .delete(`/api/articles/ /comments/${commentId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      const { body, body: { status, data } } = res;
-      expect(res).to.have.status(422);
-      expect(body).to.have.property('data');
-      expect(data).to.have.property('input');
-      expect(status).to.eql('fail');
-    });
+      it('Should delete comment', async () => {
+        const res = await chai.request(app)
+          .delete(`/api/articles/${articleId}/comments/${commentId}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body, body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(body).to.have.property('data');
+        expect(status).to.eql('success');
+        expect(message).to.eql('Comment was deleted successfully');
+      });
 
-    it('Should return error when no comment Id', async () => {
-      const res = await chai.request(app)
-        .delete(`/api/articles/${articleId}/comments/ /`)
-        .set('Authorization', `Bearer ${userToken}`);
-      const { body, body: { status, data } } = res;
-      expect(res).to.have.status(422);
-      expect(body).to.have.property('data');
-      expect(data).to.have.property('input');
-      expect(status).to.eql('fail');
-    });
+      it('Should return error when no article Id', async () => {
+        const res = await chai.request(app)
+          .delete(`/api/articles/ /comments/${commentId}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body, body: { status, data } } = res;
+        expect(res).to.have.status(422);
+        expect(body).to.have.property('data');
+        expect(data).to.have.property('input');
+        expect(status).to.eql('fail');
+      });
 
-    it('Should return error when fake comment Id is supplied', async () => {
-      const res = await chai.request(app)
-        .delete(`/api/articles/${articleId}/comments/${fakeCommentId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      const { body: { status } } = res;
-      expect(res).to.have.status(500);
-      expect(status).to.eql('error');
-    });
+      it('Should return error when no comment Id', async () => {
+        const res = await chai.request(app)
+          .delete(`/api/articles/${articleId}/comments/ /`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body, body: { status, data } } = res;
+        expect(res).to.have.status(422);
+        expect(body).to.have.property('data');
+        expect(data).to.have.property('input');
+        expect(status).to.eql('fail');
+      });
 
-    it('Should return error when fake UUID comment Id is supplied', async () => {
-      const res = await chai.request(app)
-        .delete(`/api/articles/${articleId}/comments/${fakeUUIDCommentId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      const { body: { status, data: { message } } } = res;
-      expect(res).to.have.status(404);
-      expect(status).to.eql('fail');
-      expect(message).to.eql('No comment was found');
+      it('Should return error when fake comment Id is supplied', async () => {
+        const res = await chai.request(app)
+          .delete(`/api/articles/${articleId}/comments/${fakeCommentId}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status } } = res;
+        expect(res).to.have.status(500);
+        expect(status).to.eql('error');
+      });
+
+      it('Should return error when fake UUID comment Id is supplied', async () => {
+        const res = await chai.request(app)
+          .delete(`/api/articles/${articleId}/comments/${fakeUUIDCommentId}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(404);
+        expect(status).to.eql('fail');
+        expect(message).to.eql('No comment was found');
+      });
+    });
+    describe('Tests for like comment', () => {
+      it('Should like comment if request is correct', async () => {
+        const res = await chai.request(app)
+          .post(`/api/articles/${articleId}/comments/${commentId2}/like`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, message } } = res;
+        expect(res).to.have.status(201);
+        expect(status).to.equal('success');
+        expect(message).to.equal('You liked this comment!');
+      });
+
+      it('Should unlike comment if comment has already been liked by the user', async () => {
+        const res = await chai.request(app)
+          .post(`/api/articles/${articleId}/comments/${commentId2}/like`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, message } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.equal('success');
+        expect(message).to.equal('You unliked this comment!');
+      });
+
+      it('Should return error if comment id is incorrrect', async () => {
+        const res = await chai.request(app)
+          .post(`/api/articles/${articleId}/comments/${fakeCommentId}/like`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, message } } = res;
+        expect(res).to.have.status(500);
+        expect(status).to.equal('error');
+        expect(message).to.equal('Internal Server error occured');
+      });
     });
   });
 
