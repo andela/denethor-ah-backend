@@ -7,6 +7,7 @@ import {
   getAllArticles, getArticle, deleteArticle
 } from '../controllers/article';
 import { reportArticle } from '../controllers/reports';
+import { shareArticle } from '../controllers/shares';
 import commentsRouter from './comment';
 import highlightRouter from './highlight';
 
@@ -25,5 +26,6 @@ articlesRouter.use('/:articleId/comments', commentsRouter);
 articlesRouter.get('/', getAllArticles);
 articlesRouter.get('/:id', getArticle);
 articlesRouter.post('/:id/report', passport.authenticate('jwt', { session: false }), reportArticle);
+articlesRouter.post('/:id/share', shareArticle);
 
 export default articlesRouter;

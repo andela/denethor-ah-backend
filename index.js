@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
 import sessionManagement from './server/config/session';
-import swaggerDocument from './swagger';
+import swaggerDocument from './server/docs/swagger';
 
 import auth from './server/api/middlewares/authentication/authenticate';
 import userRoute from './server/api/routes/user';
