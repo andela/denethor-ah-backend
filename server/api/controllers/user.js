@@ -367,30 +367,6 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-export const upgradeToAdmin = async ({ user: { id }, body: { pass } }, res) => {
-  if (pass !== process.env.ADMIN_PASS) {
-    return res.status(403).send({
-      status: 'fail',
-      message: 'wrong pass'
-    });
-  }
-  try {
-    const [, [{ username, role: assignedRole }]] = await User.update(
-      { role: 'admin' },
-      { returning: true, where: { id: { [Op.eq]: id } } }
-    );
-    res.status(200).send({
-      status: 'success',
-      data: { id, username, assignedRole }
-    });
-  } catch (error) {
-    res.status(500).send({
-      status: 'error',
-      message: 'Internal server error occured.'
-    });
-  }
-};
-
 export const changeRole = async ({ body: { id, role: proposedRole } }, res) => {
   try {
     const user = await User.update(
@@ -455,7 +431,7 @@ export const listAuthors = async (req, res) => {
 };
 
 export const getUser = async ({ user: { role }, params: { id } }, res) => {
-  if (role !== 'admin') {
+  if (role !== 'admin' && role !== 'super-admin') {
     return res.status(403).send({
       status: 'fail',
       message: 'You\'re not an admin'
@@ -494,7 +470,7 @@ export const getUser = async ({ user: { role }, params: { id } }, res) => {
 };
 
 export const deleteUser = async ({ user: { role }, params: { id } }, res) => {
-  if (role !== 'admin') {
+  if (role !== 'admin' && role !== 'super-admin') {
     return res.status(403).send({
       status: 'fail',
       message: 'You\'re not an admin'
@@ -513,6 +489,25 @@ export const deleteUser = async ({ user: { role }, params: { id } }, res) => {
     res.status(200).send({
       status: 'success',
       data: { id, message: 'user deleted' }
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      message: 'internal server error occured'
+    });
+  }
+};
+
+export const unsubscribeMail = async ({ user: { id } }, res) => {
+  try {
+    await User.update(
+      { notifications: false },
+      { returning: true, where: { id: { [Op.eq]: id } } }
+    );
+
+    res.status(200).send({
+      status: 'success',
+      message: 'Successfully unsubscribed from email list'
     });
   } catch (error) {
     res.status(500).send({

@@ -11,6 +11,7 @@ import {
 import mockCategory from '../mocks/mockCategory';
 import { comment, longComment } from '../mocks/mockComments';
 import mockRoles from '../mocks/mockRoles';
+import superAdmin from '../mocks/super-admin';
 
 chai.use(chaiHttp);
 
@@ -30,6 +31,7 @@ describe('Tests for article resource', () => {
 
     before(async () => {
       await models.Roles.bulkCreate(mockRoles);
+      await models.User.bulkCreate(superAdmin);
       await models.Category.bulkCreate(mockCategory);
 
       const { body: { data: { link } } } = await chai.request(app)
@@ -996,9 +998,15 @@ describe('Tests for article resource', () => {
       });
 
       it("Should allow Admins delete other Author's Article", async () => {
+        const { body: { data: { token: superToken } } } = await chai.request(app)
+          .post('/api/users/login')
+          .send({
+            email: superAdmin[0].email,
+            password: 'password'
+          });
         const res = await chai.request(app)
           .delete(`/api/articles/${articleId2}/`)
-          .set('Authorization', `Bearer ${token2}`)
+          .set('Authorization', `Bearer ${superToken}`)
           .send(mockArticle);
         const { body: { status, message } } = res;
         expect(res).to.have.status(200);

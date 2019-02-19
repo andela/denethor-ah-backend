@@ -1,8 +1,10 @@
 import sgMail from '@sendgrid/mail';
 import env from 'dotenv';
 
-import verifyTemplate from './templates';
-import resetPassowordTemplate from './resetPasswordTemplates';
+import verifyTemplate from './templates/templates';
+import resetPassowordTemplate from './templates/resetPasswordTemplates';
+import newArticleTemplate from './templates/newArticleTemplate';
+import articleGotNewCommentTemplate from './templates/articleGotNewComment';
 
 env.config();
 sgMail.setApiKey(process.env.SENDGRID_KEY);
@@ -15,7 +17,7 @@ sgMail.setApiKey(process.env.SENDGRID_KEY);
   * @param {Object} url - created User's ID
   * @returns {null} null
   */
-const sendVerificationMail = (username, email, url) => {
+export const sendVerificationMail = (username, email, url) => {
   const msg = {
     to: email,
     from: 'support@authors-haven.com',
@@ -25,7 +27,7 @@ const sendVerificationMail = (username, email, url) => {
   return sgMail.send(msg);
 };
 
-const resetPasswordVerificationMail = (username, email, token) => {
+export const resetPasswordVerificationMail = (username, email, token) => {
   const msg = {
     to: email,
     from: 'support@authors-haven.com',
@@ -35,4 +37,23 @@ const resetPasswordVerificationMail = (username, email, token) => {
   return sgMail.send(msg);
 };
 
-export { sendVerificationMail, resetPasswordVerificationMail };
+
+export const newArticleMail = (info, email) => {
+  const msg = {
+    to: email,
+    from: 'support@authors-haven.com',
+    subject: `New article from ${info.author}`,
+    html: newArticleTemplate(info),
+  };
+  return sgMail.send(msg);
+};
+
+export const articleGotNewComment = (info, email) => {
+  const msg = {
+    to: email,
+    from: 'support@authors-haven.com',
+    subject: 'New comments on your bookmarked article',
+    html: articleGotNewCommentTemplate(info),
+  };
+  return sgMail.send(msg);
+};
