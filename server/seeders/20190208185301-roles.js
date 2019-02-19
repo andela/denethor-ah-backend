@@ -4,6 +4,8 @@ module.exports = {
       name: 'admin'
     }, {
       name: 'author'
+    }, {
+      name: 'super-admin'
     }], {});
   },
 

@@ -91,10 +91,10 @@ export const changePasswordValidation = (req, res, next) => {
 export const changeRoleValidation = (
   { user: { role }, body: { role: proposedRole } }, res, next
 ) => {
-  if (role !== 'admin') {
+  if (role !== 'super-admin') {
     return res.status(401).send({
       status: 'fail',
-      message: 'only admins can change user roles'
+      message: 'only super-admin can change the role of others'
     });
   }
 
