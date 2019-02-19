@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import passport from 'passport';
 import {
-  registerUser, verifyUser, socialLogin, loginUser, changeRole, listAuthors,
-  logout, followUser, resetPasswordVerification, resetPassword, upgradeToAdmin, getUser, deleteUser
+  registerUser, verifyUser, socialLogin, loginUser, changeRole, listAuthors, unsubscribeMail,
+  logout, followUser, resetPasswordVerification, resetPassword, getUser, deleteUser
 } from '../controllers/user';
 import {
   registrationValidation, loginValidation, resetPasswordValidation,
@@ -29,10 +29,11 @@ userRouter.post('/resetPassword', resetPasswordValidation, resetPasswordVerifica
 userRouter.patch('/resetPassword/:token', changePasswordValidation, resetPassword);
 
 userRouter.patch('/role', passport.authenticate('jwt', { session: false }), changeRoleValidation, changeRole);
-userRouter.patch('/admin', passport.authenticate('jwt', { session: false }), upgradeToAdmin);
 
 userRouter.get('/', passport.authenticate('jwt', { session: false }), listAuthors);
 userRouter.get('/:id', passport.authenticate('jwt', { session: false }), getUser);
 userRouter.delete('/:id', passport.authenticate('jwt', { session: false }), deleteUser);
+
+userRouter.patch('/:id/unsubscribe', passport.authenticate('jwt', { session: false }), unsubscribeMail);
 
 export default userRouter;

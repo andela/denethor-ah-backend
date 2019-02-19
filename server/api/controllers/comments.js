@@ -2,12 +2,16 @@ import {
   Comment, Article, Sequelize
 } from '../../models';
 
+import informBookmarkers from '../helpers/notification/bookmarkers';
+
 const { Op } = Sequelize;
 
 export const postComment = async (req, res) => {
   const { params: { articleId }, body: { commentBody }, user: { id: userId } } = req;
   try {
     const newComment = await Comment.create({ commentBody, articleId, userId });
+
+    informBookmarkers(articleId, commentBody, userId);
     return res.status(201).send({ status: 'success', data: newComment });
   } catch (error) {
     return res.status(500).send({

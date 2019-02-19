@@ -4,13 +4,16 @@ import app from '../../index';
 import models, { sequelize } from '../../server/models';
 import { user1, user2 } from '../mocks/mockUsers';
 import mockRoles from '../mocks/mockRoles';
+import superAdmin from '../mocks/super-admin';
 
 chai.use(chaiHttp);
 
 describe('Tests for getting all authors', () => {
-  let userToken, user2token, userId, user2id;
+  let userToken, user2token, userId, user2id, adminToken;
   before(async () => {
     await models.Roles.bulkCreate(mockRoles);
+    await models.User.bulkCreate(superAdmin);
+
     const { body: { data: { link } } } = await chai.request(app)
       .post('/api/users')
       .send(user1.signUp);
@@ -25,10 +28,18 @@ describe('Tests for getting all authors', () => {
     const { body: { data: { user: { id: id2, token: token2 } } } } = await chai.request(app)
       .patch(link2.slice(22));
 
+    const { body: { data: { token: superToken } } } = await chai.request(app)
+      .post('/api/users/login')
+      .send({
+        email: superAdmin[0].email,
+        password: 'password'
+      });
+
     user2token = token2;
     userToken = token;
     userId = id;
     user2id = id2;
+    adminToken = superToken;
   });
 
   after((done) => {
@@ -70,14 +81,9 @@ describe('Tests for getting all authors', () => {
   });
 
   it('Should get details of particular user if admin', async () => {
-    await chai.request(app)
-      .patch('/api/users/admin')
-      .set('Authorization', `Bearer ${userToken}`)
-      .send({ pass: process.env.ADMIN_PASS });
-
     const res = await chai.request(app)
       .get(`/api/users/${userId}`)
-      .set('Authorization', `Bearer ${userToken}`);
+      .set('Authorization', `Bearer ${adminToken}`);
     const { status, data: { id } } = res.body;
     expect(res).to.have.status(200);
     expect(status).to.equal('success');
@@ -87,7 +93,7 @@ describe('Tests for getting all authors', () => {
   it('Should be able to delete particular user if admin', async () => {
     const res = await chai.request(app)
       .delete(`/api/users/${user2id}`)
-      .set('Authorization', `Bearer ${userToken}`);
+      .set('Authorization', `Bearer ${adminToken}`);
     const { status, data: { id, message } } = res.body;
     expect(res).to.have.status(200);
     expect(status).to.equal('success');
@@ -98,17 +104,17 @@ describe('Tests for getting all authors', () => {
   it('Should throw 404 if user is not found', async () => {
     const res = await chai.request(app)
       .get(`/api/users/${user2id}`)
-      .set('Authorization', `Bearer ${userToken}`);
+      .set('Authorization', `Bearer ${adminToken}`);
     const { status, message } = res.body;
     expect(res).to.have.status(404);
     expect(status).to.equal('fail');
     expect(message).to.equal('no user with that id');
   });
 
-  it('Should throw 500 if user is not found', async () => {
+  it('Should throw 500 for invalid id', async () => {
     const res = await chai.request(app)
       .delete(`/api/users/${user2id}`)
-      .set('Authorization', `Bearer ${userToken}`);
+      .set('Authorization', `Bearer ${adminToken}`);
     const { status, message } = res.body;
     expect(res).to.have.status(404);
     expect(status).to.equal('fail');
