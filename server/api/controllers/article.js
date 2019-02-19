@@ -1,5 +1,6 @@
 import Sequelize from 'sequelize';
 import { createLogger, format, transports } from 'winston';
+import notifyFollowers from '../helpers/notification/followers';
 import {
   User, Article, LikeDislike, Tag, Rating
 } from '../../models';
@@ -119,6 +120,10 @@ export const createArticle = async (req, res) => {
 
     newArticle = newArticle.toJSON();
     newArticle.readTime = getReadTime(newArticle.body);
+
+
+    const { authorId, id } = newArticle;
+    notifyFollowers(authorId, id, title);
 
     return res.status(201).send({
       status: 'Success',
@@ -566,7 +571,7 @@ export const deleteArticle = async (req, res) => {
         message: 'Article not found'
       });
     }
-    if ((foundArticle.authorId !== userId) && (role !== 'admin')) {
+    if ((foundArticle.authorId !== userId) && (role !== 'admin') && (role !== 'super-admin')) {
       return res.status(401).send({
         status: 'fail',
         message: 'Sorry not authorized'
