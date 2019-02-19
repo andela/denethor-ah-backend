@@ -3,7 +3,7 @@ import chaiHttp from 'chai-http';
 import app from '../../index';
 import models, { sequelize } from '../../server/models';
 import {
-  user1, user2, user3, user5, user6, user8
+  user1, user2, user3, user5, user6, user8, user9
 } from '../mocks/mockUsers';
 import {
   mockArticle, invalidArticle, mockHighlight, InvalidHighlight, invalidUpdateArticle
@@ -70,6 +70,73 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(201);
       expect(res.body.status).to.equal('Success');
       expect(res.body.data.readTime).to.not.equal(undefined);
+    });
+  });
+
+  describe('Test Cases for Share Article Endpoint', () => {
+    let user9Token, article9Id;
+
+    before(async () => {
+      const { body: { data: { link } } } = await chai.request(app)
+        .post('/api/users')
+        .send(user9.signUp);
+
+      const { body: { data: { user: { token } } } } = await chai.request(app)
+        .patch(link.slice(22));
+
+      user9Token = token;
+    });
+    it('should create an article to be shared ', async () => {
+      const res = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${user9Token}`)
+        .send(mockArticle);
+      expect(res).to.have.status(201);
+      expect(res.body.status).to.equal('Success');
+      expect(res.body.data.readTime).to.not.equal(undefined);
+      article9Id = res.body.data.id;
+    });
+    it('should share an article with type facebook', async () => {
+      const sharetype = 'facebook';
+      const res = await chai.request(app)
+        .post(`/api/articles/${article9Id}/share?sharetype=${sharetype}`);
+      expect(res).to.have.status(201);
+      expect(res.body.status).to.equal('success');
+      expect(res.body.message).to.not.equal(undefined);
+    });
+    it('should share an article with type twitter', async () => {
+      const sharetype = 'twitter';
+      const res = await chai.request(app)
+        .post(`/api/articles/${article9Id}/share?sharetype=${sharetype}`);
+      expect(res).to.have.status(201);
+      expect(res.body.status).to.equal('success');
+      expect(res.body.message).to.not.equal(undefined);
+    });
+    it('should  not share an article with an invalid type', async () => {
+      const sharetype = 'twitt';
+      const res = await chai.request(app)
+        .post(`/api/articles/${article9Id}/share?sharetype=${sharetype}`);
+      expect(res).to.have.status(422);
+      expect(res.body.status).to.equal('fail');
+      expect(res.body.message).to.not.equal(undefined);
+    });
+    it('should  not share an article with an invalid article Id', async () => {
+      const sharetype = 'twitter';
+      const fakeId = 'ab59246c-7034-4765-96fe-7baa4da9b1d5';
+      const res = await chai.request(app)
+        .post(`/api/articles/${fakeId}/share?sharetype=${sharetype}`);
+      expect(res).to.have.status(404);
+      expect(res.body.status).to.equal('fail');
+      expect(res.body.message).to.not.equal(undefined);
+    });
+    it('should  not share an article with an invalid article Id data type ', async () => {
+      const sharetype = 'twitter';
+      const fakeId = 'ab59246c-7034-4765-96fe-7baa4da9b1d582';
+      const res = await chai.request(app)
+        .post(`/api/articles/${fakeId}/share?sharetype=${sharetype}`);
+      expect(res).to.have.status(500);
+      expect(res.body.status).to.equal('Error');
+      expect(res.body.error).to.not.equal(undefined);
     });
   });
 
