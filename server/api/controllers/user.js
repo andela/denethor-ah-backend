@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
 import Sequelize from 'sequelize';
+import _cloudinary from 'cloudinary';
+import fs from 'fs';
+import multer from 'multer';
 import { createLogger, format, transports } from 'winston';
 import { signToken, verifyToken } from '../helpers/tokenization/tokenize';
 import { User, Article } from '../../models';
@@ -154,7 +157,7 @@ export const socialLogin = async (req, res) => {
       }
     });
   } catch (e) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'fail',
       message: 'internal server error occured'
     });
@@ -232,19 +235,26 @@ export const loginUser = async (req, res) => {
 export const followUser = async (req, res) => {
   const { userId } = req.params;
 
-  // req.user is available after password authenticates user
+  // req.user is available after passport authenticates user
   const followerId = req.user.id;
 
   try {
-    let followedUser = await User.findByPk(userId);
-    const followingUser = await User.findByPk(followerId);
+    // use one query to get the two users
+    // fetching id only because we don't need other fields for the operation here
+    const users = await User.findAll({
+      where: { id: { [Op.in]: [userId, followerId] } },
+      attributes: ['id']
+    });
 
-    if (!followedUser || !followingUser) {
+    if (users.length < 2) {
       return res.status(404).send({
         status: 'fail',
         message: 'account(s) not found'
       });
     }
+
+    let followedUser = users.find(user => user.id === userId);
+    const followingUser = users.find(user => user.id === followerId);
 
     await followedUser.addFollowers(followingUser);
 
@@ -265,12 +275,68 @@ export const followUser = async (req, res) => {
       data: followedUser
     });
   } catch (error) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'Internal server error occured.'
     });
   }
 };
+
+/**
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} response object
+ */
+export const unfollowUser = async (req, res) => {
+  const { userId } = req.params;
+
+  // req.user is available after passport authenticates user
+  const followerId = req.user.id;
+
+  try {
+    // use one query to get the two users
+    // fetching id only because we don't need other fields for the operation here
+    const users = await User.findAll({
+      where: { id: { [Op.in]: [userId, followerId] } },
+      attributes: ['id']
+    });
+
+    if (users.length < 2) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'account(s) not found'
+      });
+    }
+
+    let followedUser = users.find(user => user.id === userId);
+    const followingUser = users.find(user => user.id === followerId);
+
+    await followedUser.removeFollowers(followingUser);
+
+    // get all followers retrieving only id
+    const userFollowers = await followedUser.getFollowers({
+      attributes: ['id']
+    });
+
+    // we use toJSON to convert the sequelize model instance to json object
+    // so we can add the followers property to the followedUser object
+    // to be returned
+    followedUser = followedUser.toJSON();
+    followedUser.followers = userFollowers.map(item => item.id);
+
+    // return the followed user
+    return res.status(201).send({
+      status: 'success',
+      data: followedUser
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occured.'
+    });
+  }
+};
+
 export const resetPasswordVerification = async (req, res) => {
   const { body: { email } } = req;
   try {
@@ -309,7 +375,7 @@ export const resetPasswordVerification = async (req, res) => {
       },
     });
   } catch (e) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'Internal server error occured.'
     });
@@ -360,7 +426,7 @@ export const resetPassword = async (req, res) => {
         message: 'Link has expired. Kindly re-initiate password change.'
       });
     }
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'Internal server error occured.'
     });
@@ -383,12 +449,12 @@ export const changeRole = async ({ body: { id, role: proposedRole } }, res) => {
 
     const [, [{ username, role: assignedRole }]] = user;
 
-    res.status(200).send({
+    return res.status(200).send({
       status: 'success',
       data: { id, username, assignedRole }
     });
   } catch (error) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'internal server error occured'
     });
@@ -418,12 +484,12 @@ export const listAuthors = async (req, res) => {
     users.users = usersWithCount;
     users.count = users.users.length;
 
-    res.status(200).send({
+    return res.status(200).send({
       status: 'success',
       data: users
     });
   } catch (error) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'internal server error occured'
     });
@@ -457,12 +523,12 @@ export const getUser = async ({ user: { role }, params: { id } }, res) => {
     user = user.toJSON();
     user.articlesWritten = user.userArticles.length;
 
-    res.status(200).send({
+    return res.status(200).send({
       status: 'success',
       data: user
     });
   } catch (error) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'internal server error occured'
     });
@@ -486,12 +552,12 @@ export const deleteUser = async ({ user: { role }, params: { id } }, res) => {
       });
     }
 
-    res.status(200).send({
+    return res.status(200).send({
       status: 'success',
       data: { id, message: 'user deleted' }
     });
   } catch (error) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'internal server error occured'
     });
@@ -505,14 +571,175 @@ export const unsubscribeMail = async ({ user: { id } }, res) => {
       { returning: true, where: { id: { [Op.eq]: id } } }
     );
 
-    res.status(200).send({
+    return res.status(200).send({
       status: 'success',
       message: 'Successfully unsubscribed from email list'
     });
   } catch (error) {
-    res.status(500).send({
+    return res.status(500).send({
       status: 'error',
       message: 'internal server error occured'
+    });
+  }
+};
+
+/**
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} response object
+ */
+export const getUserProfile = async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findByPk(userId, {
+    attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'role', 'isVerified'] }
+  });
+
+  if (!user) {
+    return res.status(404).send({
+      status: 'fail',
+      message: 'User not found'
+    });
+  }
+
+  const userData = user.toJSON();
+  const userFollowers = await user.getFollowers({ attributes: ['id', 'firstname', 'lastname', 'imageUrl'] });
+  const userFollowing = await user.getFollowing({ attributes: ['id', 'firstname', 'lastname', 'imageUrl'] });
+
+  // pluck only id, firstname only from user data
+  userData.followers = userFollowers.map(({ id, firstname, imageUrl }) => ({ id, firstname, imageUrl }));
+  userData.following = userFollowing.map(({ id, firstname, imageUrl }) => ({ id, firstname, imageUrl }));
+
+  userData.publishedArticles = await user.getUserArticles();
+
+  return res.status(200).send({
+    status: 'success',
+    data: userData
+  });
+};
+
+/**
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} response object
+ */
+export const uploadProfileImage = async (req, res) => {
+  const { id: userId } = req.user;
+
+  try {
+    const storage = multer.diskStorage({
+      destination(req, file, cb) {
+        cb(null, 'uploads/');
+      },
+      filename(req, file, cb) {
+        cb(null, file.originalname);
+      }
+    });
+
+    // user multer to store the image in the local /uploads folder
+    const upload = multer({ storage }).single('profile-picture');
+    await upload(req, res, (error) => {
+      if (error) {
+        return res.status(500).send({
+          status: 'error',
+          message: 'There was an error with the upload. Try again',
+          error
+        });
+      }
+
+      // Upload the saved file to cloudinary
+      const cloudinary = _cloudinary.v2;
+
+      const { CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUD_NAME } = process.env;
+      cloudinary.config({
+        cloud_name: CLOUD_NAME,
+        api_key: CLOUDINARY_API_KEY,
+        api_secret: CLOUDINARY_API_SECRET
+      });
+
+      const { path } = req.file;
+      const uniqueFilename = new Date().toISOString();
+
+      cloudinary.uploader.upload(
+        path,
+        { public_id: `profiles/${uniqueFilename}`, tags: 'author-haven profile pictures' },
+        async (err, image) => {
+          if (err) {
+            return res.status(500).send({
+              status: 'error',
+              message: 'There was an error with your request. Try again',
+              error
+            });
+          }
+
+          // remove file from server
+          fs.unlinkSync(path);
+
+          // update the user details
+          const user = await User.findByPk(userId);
+          const { url: imageUrl } = image || {};
+
+          const updatedUser = await user.update({ imageUrl });
+          const { id, email, firstname } = updatedUser.toJSON();
+
+          return res.status(200).send({
+            status: 'success',
+            data: {
+              id, email, firstname, imageUrl
+            }
+          });
+        }
+      );
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error',
+      error
+    });
+  }
+};
+
+/**
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} response object
+ */
+export const updateUserProfile = async (req, res) => {
+  const { params: { userId }, body } = req;
+  const { user: { id: authenticatedUserId } } = req;
+
+  if (userId !== authenticatedUserId) {
+    return res.status(400).send({
+      status: 'fail',
+      message: 'Wrong User. You cannot perform this operation'
+    });
+  }
+
+  try {
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'role', 'isVerified'] }
+    });
+
+    const updatedUser = await user.update(body);
+
+    const userData = updatedUser.toJSON();
+    const userFollowers = await user.getFollowers({ attributes: ['id', 'firstname', 'lastname', 'imageUrl'] });
+    const userFollowing = await user.getFollowing({ attributes: ['id', 'firstname', 'lastname', 'imageUrl'] });
+
+    // pluck only id, firstname only from user data
+    userData.followers = userFollowers.map(({ id, firstname, imageUrl }) => ({ id, firstname, imageUrl }));
+    userData.following = userFollowing.map(({ id, firstname, imageUrl }) => ({ id, firstname, imageUrl }));
+
+    userData.publishedArticles = await user.getUserArticles();
+
+    return res.status(200).send({
+      status: 'success',
+      data: userData
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error'
     });
   }
 };
