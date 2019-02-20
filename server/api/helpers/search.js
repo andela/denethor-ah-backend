@@ -1,10 +1,14 @@
+/* eslint-disable import/no-cycle */
+
 import Sequelize from 'sequelize';
 import { User, Tag, Article } from '../../models';
+import { getReadTime } from '../controllers/article';
 
 const { Op } = Sequelize;
 let foundAuthorId;
 let foundArticles;
 let foundTag;
+let formattedArticles;
 
 const findAuthorId = async (username) => {
   try {
@@ -30,6 +34,12 @@ const findTag = async (id) => {
   }
 };
 
+const formatArticle = articles => articles.map((article) => {
+  article = article.toJSON();
+  article.readTime = getReadTime(article.body);
+  return article;
+});
+
 export const getArticlesByAllParams = async (username, tagId, searchString) => {
   try {
     foundAuthorId = await findAuthorId(username);
@@ -44,7 +54,8 @@ export const getArticlesByAllParams = async (username, tagId, searchString) => {
       }
     });
 
-    return foundArticles;
+    formattedArticles = formatArticle(foundArticles);
+    return formattedArticles;
   } catch (e) {
     return undefined;
   }
@@ -62,7 +73,8 @@ export const getArticlesBySearchTagParams = async (tagId, searchString) => {
       }
     });
 
-    return foundArticles;
+    formattedArticles = formatArticle(foundArticles);
+    return formattedArticles;
   } catch (e) {
     return undefined;
   }
@@ -81,7 +93,8 @@ export const getArticlesBySearchAuthorParams = async (username, searchString) =>
       }
     });
 
-    return foundArticles;
+    formattedArticles = formatArticle(foundArticles);
+    return formattedArticles;
   } catch (e) {
     return undefined;
   }
@@ -97,7 +110,8 @@ export const getArticlesByTagAuthorParams = async (tagId, username) => {
       }
     });
 
-    return foundArticles;
+    formattedArticles = formatArticle(foundArticles);
+    return formattedArticles;
   } catch (e) {
     return undefined;
   }
@@ -114,7 +128,8 @@ export const getArticlesBySearchParam = async (searchString) => {
       }
     });
 
-    return foundArticles;
+    formattedArticles = formatArticle(foundArticles);
+    return formattedArticles;
   } catch (e) {
     return undefined;
   }
@@ -125,7 +140,8 @@ export const getArticlesByTagParam = async (tagId) => {
     foundTag = await findTag(tagId);
     foundArticles = await foundTag.getArticles();
 
-    return foundArticles;
+    formattedArticles = formatArticle(foundArticles);
+    return formattedArticles;
   } catch (e) {
     return undefined;
   }
@@ -140,7 +156,8 @@ export const getArticlesByAuthorParam = async (username) => {
       }
     });
 
-    return foundArticles;
+    formattedArticles = formatArticle(foundArticles);
+    return formattedArticles;
   } catch (e) {
     return undefined;
   }
