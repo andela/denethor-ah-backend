@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import sinon from 'sinon';
 import app from '../../index';
-import models, { sequelize, Article } from '../../server/models';
+import models, { sequelize, Article, Tag } from '../../server/models';
 import {
   user1, user2, user3, user5, user6, user8, user9
 } from '../mocks/mockUsers';
@@ -1116,6 +1116,26 @@ describe('Tests for article resource', () => {
         expect(message).to.equal('Article deleted successfully');
       });
 
+      it('should return an error for no Tags', async () => {
+        const res = await chai.request(app)
+          .get('/api/articles/tags')
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(404);
+        expect(status).to.eql('fail');
+        expect(message).to.eql('No Tag was found');
+      });
+
+      it('should return no article filtering with author', async () => {
+        const res = await chai.request(app)
+          .get('/api/articles/filter?searchStr=johnnybravo1')
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(404);
+        expect(status).to.eql('fail');
+        expect(message).to.eql('No Article was found');
+      });
+
       it('Should return error if article id is fake', async () => {
         const res = await chai.request(app)
           .delete(`/api/articles/${nonExistingArticleId}/`)
@@ -1220,6 +1240,30 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(500);
       expect(status).to.eql('error');
       expect(message).to.eql('Internal server error occurred');
+    });
+  });
+
+  describe('Tests for get all tags', () => {
+    it('should return an article filtering with all params', async () => {
+      const res = await chai.request(app)
+        .get('/api/articles/tags')
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status, data: { message } } } = res;
+      expect(res).to.have.status(200);
+      expect(status).to.eql('success');
+      expect(message).to.eql('Tags found');
+    });
+
+    it('should fail on server error', async () => {
+      const tagStub = sinon.stub(Tag, 'findAll');
+      tagStub.rejects();
+
+      const res = await chai.request(app)
+        .get('/api/articles/tags')
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(res).to.have.status(500);
+
+      tagStub.restore();
     });
   });
 });
