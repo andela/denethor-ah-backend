@@ -15,7 +15,6 @@ const opts = {
 };
 
 opts.logging = env === 'development';
-
 const sequelize = new Sequelize(config.url, opts);
 
 fs

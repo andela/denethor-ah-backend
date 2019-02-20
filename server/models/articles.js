@@ -49,7 +49,6 @@ module.exports = (sequelize, DataTypes) => {
       through: 'TagArticle',
       timestamps: false,
       as: 'tags',
-      onDelete: 'CASCADE'
     });
   };
   return Article;
