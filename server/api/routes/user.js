@@ -2,11 +2,12 @@ import { Router } from 'express';
 import passport from 'passport';
 import {
   registerUser, verifyUser, socialLogin, loginUser, changeRole, listAuthors, unsubscribeMail,
-  logout, followUser, resetPasswordVerification, resetPassword, getUser, deleteUser
+  logout, followUser, unfollowUser, resetPasswordVerification, resetPassword,
+  getUser, deleteUser, getUserProfile, uploadProfileImage, updateUserProfile
 } from '../controllers/user';
 import {
   registrationValidation, loginValidation, resetPasswordValidation,
-  changePasswordValidation, changeRoleValidation
+  changePasswordValidation, changeRoleValidation, profileUpdateValidation
 } from '../middlewares/validation/user';
 
 const userRouter = Router();
@@ -14,6 +15,7 @@ const userRouter = Router();
 userRouter.post('/', registrationValidation, registerUser);
 userRouter.post('/login', loginValidation, loginUser);
 userRouter.post('/:userId/follow', passport.authenticate('jwt', { session: false }), followUser);
+userRouter.delete('/:userId/follow', passport.authenticate('jwt', { session: false }), unfollowUser);
 
 userRouter.patch('/:id/verify', verifyUser);
 userRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -33,6 +35,10 @@ userRouter.patch('/role', passport.authenticate('jwt', { session: false }), chan
 userRouter.get('/', passport.authenticate('jwt', { session: false }), listAuthors);
 userRouter.get('/:id', passport.authenticate('jwt', { session: false }), getUser);
 userRouter.delete('/:id', passport.authenticate('jwt', { session: false }), deleteUser);
+userRouter.post('/:userId/profile/upload', passport.authenticate('jwt', { session: false }), uploadProfileImage);
+userRouter.get('/:userId/profile', getUserProfile);
+userRouter.patch('/:userId/profile', passport.authenticate('jwt', { session: false }),
+  profileUpdateValidation, updateUserProfile);
 
 userRouter.patch('/:id/unsubscribe', passport.authenticate('jwt', { session: false }), unsubscribeMail);
 

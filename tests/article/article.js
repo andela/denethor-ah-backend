@@ -1,7 +1,8 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
+import sinon from 'sinon';
 import app from '../../index';
-import models, { sequelize } from '../../server/models';
+import models, { sequelize, Article } from '../../server/models';
 import {
   user1, user2, user3, user5, user6, user8, user9
 } from '../mocks/mockUsers';
@@ -765,6 +766,17 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(200);
       expect(res.body.status).to.equal('success');
       expect(res.body.data.length > 0).to.equal(true);
+    });
+
+    it('should fail on server error', async () => {
+      const articleStub = sinon.stub(Article, 'findAll');
+      articleStub.rejects();
+
+      const res = await chai.request(app)
+        .get('/api/articles');
+      expect(res).to.have.status(500);
+
+      articleStub.restore();
     });
 
     it('should fail to return wrong article', async () => {
