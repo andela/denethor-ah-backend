@@ -28,6 +28,31 @@ const registrationRequestSchema = {
   password,
 };
 
+// for profile update the schema options are different
+// they are all optional and not required
+const firstnameUpate = Joi.string().trim().strict().min(3);
+
+const lastnameUpate = Joi.string().trim().strict().min(3);
+
+const usernameUpate = Joi.string().trim().alphanum().min(3)
+  .max(30);
+
+const emailUpate = Joi.string().trim().strict().min(10)
+  .max(100)
+  .email();
+
+const bioUpdate = Joi.string().trim().strict()
+  .min(10)
+  .max(200);
+
+const profileUpdateSchema = {
+  firstname: firstnameUpate,
+  lastname: lastnameUpate,
+  username: usernameUpate,
+  email: emailUpate,
+  bio: bioUpdate
+};
+
 const loginRequestSchema = {
   email,
   password,
@@ -42,5 +67,5 @@ const changePasswordSchema = {
 };
 
 export {
-  loginRequestSchema, registrationRequestSchema, resetPasswordSchema, changePasswordSchema
+  loginRequestSchema, registrationRequestSchema, resetPasswordSchema, changePasswordSchema, profileUpdateSchema
 };
