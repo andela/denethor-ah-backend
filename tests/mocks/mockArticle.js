@@ -39,3 +39,11 @@ export const InvalidHighlight = {
   highlight: '',
   comment: 'Mock Comment'
 };
+
+export const mockTaggedArticle = {
+  title: 'The girl named Princess',
+  description: 'The girl named Princess fell from the skies and just disappeared',
+  body: 'When Princess was a little girl, she liked to read books and ...',
+  tags: 'andela, princess',
+  categoryId: 1
+};
