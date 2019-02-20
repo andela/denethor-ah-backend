@@ -14,6 +14,8 @@ const opts = {
   define: { freezeTableName: true }
 };
 
+opts.logging = env === 'development';
+
 const sequelize = new Sequelize(config.url, opts);
 
 fs

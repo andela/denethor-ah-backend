@@ -27,7 +27,7 @@ export const updateComment = async (req, res) => {
   try {
     const foundArticle = await Article.findByPk(articleId);
     if (!foundArticle) {
-      res.status(404).send({
+      return res.status(404).send({
         status: 'fail',
         message: 'Article not found'
       });
@@ -36,26 +36,27 @@ export const updateComment = async (req, res) => {
     const foundComment = foundComments[0];
 
     if (!foundComment) {
-      res.status(404).send({
+      return res.status(404).send({
         status: 'fail',
         message: 'Comment not found under this article'
       });
     }
-    // update the comment
-    const updatedComment = await foundComment.update({ commentBody },
-      { returning: true, plain: true });
 
     // save the old version of the comment in the comment history
-    await updatedComment.createCommentHistory({
+    await foundComment.createCommentHistory({
       commentId: foundComment.id,
       commentBody: foundComment.commentBody
     });
+
+    // update the comment
+    const updatedComment = await foundComment.update({ commentBody },
+      { returning: true, plain: true });
 
     const oldComments = await updatedComment.getCommentHistories();
     const comment = updatedComment.toJSON();
     comment.oldComments = oldComments;
 
-    res.status(200).send({
+    return res.status(200).send({
       status: 'success',
       message: 'Comment updated',
       data: comment

@@ -6,6 +6,7 @@ logs
 npm-debug.log*
 
 dist
+ideas
 
 # Runtime data
 pids

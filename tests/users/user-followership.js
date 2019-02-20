@@ -80,4 +80,13 @@ describe('Test Cases for User Followership end point', () => {
     expect(user4IdFromResponse).to.eql(user4.id);
     expect(res).to.have.status(201);
   });
+  it('should succeed when user unfollows user', async () => {
+    const res = await chai.request(app)
+      .delete(`/api/users/${user1.id}/follow`)
+      .set('authorization', `Bearer ${user4.token}`);
+    // followerId should not be found in the list of followers returned from the request
+    const user4IdFromResponse = res.body.data.followers.find(followerId => followerId === user4.id);
+    expect(user4IdFromResponse).to.eql(undefined);
+    expect(res).to.have.status(201);
+  });
 });
