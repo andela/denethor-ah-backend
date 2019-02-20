@@ -2,12 +2,13 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import sinon from 'sinon';
 import app from '../../index';
-import models, { sequelize, Article } from '../../server/models';
+import models, { Article, sequelize } from '../../server/models';
 import {
   user1, user2, user3, user5, user6, user8, user9
 } from '../mocks/mockUsers';
 import {
-  mockArticle, invalidArticle, mockHighlight, InvalidHighlight, invalidUpdateArticle
+  mockArticle, invalidArticle, mockHighlight, InvalidHighlight, invalidUpdateArticle,
+  mockTaggedArticle
 } from '../mocks/mockArticle';
 import mockCategory from '../mocks/mockCategory';
 import { comment, longComment } from '../mocks/mockComments';
@@ -1015,6 +1016,101 @@ describe('Tests for article resource', () => {
         expect(res).to.have.status(500);
         expect(status).to.equal('Error');
         expect(message).to.eql('OOPS! an error occurred while trying to update this article. log in and try again!');
+      });
+    });
+
+    describe('Tests for searching an article', () => {
+      let articleInstance;
+      let articleTags;
+      before(async () => {
+        const res = await chai.request(app)
+          .post('/api/articles')
+          .set('Authorization', `Bearer ${userToken}`)
+          .send(mockTaggedArticle);
+
+        const { body: { data: newArticle } } = res;
+        articleInstance = await Article.findByPk(newArticle.id);
+        articleTags = await articleInstance.getTags();
+      });
+
+      it('should return an article filtering with all params', async () => {
+        const res = await chai.request(app)
+          .get(`/api/articles/filter?searchStr=princess&author=johnnybravo1&tag=${articleTags[0].id}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.eql('success');
+        expect(message).to.eql('Articles found');
+      });
+
+      it('should return an article filtering with search string and author', async () => {
+        const res = await chai.request(app)
+          .get('/api/articles/filter?searchStr=princess&author=johnnybravo1')
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.eql('success');
+        expect(message).to.eql('Articles found');
+      });
+
+      it('should return an article filtering with search string and tag', async () => {
+        const res = await chai.request(app)
+          .get(`/api/articles/filter?searchStr=princess&tag=${articleTags[0].id}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.eql('success');
+        expect(message).to.eql('Articles found');
+      });
+
+      it('should return an article filtering with tag and author', async () => {
+        const res = await chai.request(app)
+          .get(`/api/articles/filter?author=johnnybravo1&tag=${articleTags[0].id}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.eql('success');
+        expect(message).to.eql('Articles found');
+      });
+
+      it('should return an article filtering with search string', async () => {
+        const res = await chai.request(app)
+          .get('/api/articles/filter?searchStr=princess')
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.eql('success');
+        expect(message).to.eql('Articles found');
+      });
+
+      it('should return an article filtering with tag', async () => {
+        const res = await chai.request(app)
+          .get(`/api/articles/filter?tag=${articleTags[0].id}`)
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.eql('success');
+        expect(message).to.eql('Articles found');
+      });
+
+      it('should return an article filtering with author', async () => {
+        const res = await chai.request(app)
+          .get('/api/articles/filter?author=johnnybravo1')
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, data: { message } } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.eql('success');
+        expect(message).to.eql('Articles found');
+      });
+
+      it('should return an article filtering with search string and tag', async () => {
+        const res = await chai.request(app)
+          .get('/api/articles/filter?searchStr=princess&tag=1')
+          .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, message } } = res;
+        expect(res).to.have.status(500);
+        expect(status).to.eql('error');
+        expect(message).to.eql('Internal server error occurred');
       });
     });
 

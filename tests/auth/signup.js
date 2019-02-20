@@ -1,18 +1,14 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import app from '../../index';
-import models, { sequelize } from '../../server/models';
-import { user2 } from '../mocks/mockUsers';
-import mockRoles from '../mocks/mockRoles';
+import { sequelize } from '../../server/models';
+import { user14 } from '../mocks/mockUsers';
 
 chai.use(chaiHttp);
 
 
 describe('Test Cases for Signup Endpoint', () => {
   let link;
-  before(async () => {
-    await models.Roles.bulkCreate(mockRoles);
-  });
   after(async () => {
     await Object.values(sequelize.models).map(function (model) {
       return model.destroy({ where: {}, force: true });
@@ -23,7 +19,7 @@ describe('Test Cases for Signup Endpoint', () => {
   it('should create user account when valid input is supplied', async () => {
     const res = await chai.request(app)
       .post('/api/users')
-      .send(user2.signUp);
+      .send(user14.signUp);
     const { body: { data } } = res;
     const { link: verifyLink } = data;
     link = verifyLink;
@@ -37,7 +33,7 @@ describe('Test Cases for Signup Endpoint', () => {
     const { body: { data: { user } } } = res;
     expect(res).to.have.status(200);
     expect(user).to.have.property('token');
-    expect(user.username).to.eql(user2.signUp.username);
-    expect(user.email).to.eql(user2.signUp.email);
+    expect(user.username).to.eql(user14.signUp.username);
+    expect(user.email).to.eql(user14.signUp.email);
   });
 });

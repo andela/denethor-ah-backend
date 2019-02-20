@@ -4,10 +4,13 @@ import notifyFollowers from '../helpers/notification/followers';
 import {
   User, Article, LikeDislike, Tag, Rating
 } from '../../models';
+import {
+  getArticlesByAllParams, getArticlesBySearchTagParams, getArticlesBySearchAuthorParams,
+  getArticlesByTagAuthorParams, getArticlesBySearchParam, getArticlesByTagParam,
+  getArticlesByAuthorParam
+} from '../helpers/search';
 
-const {
-  Op
-} = Sequelize;
+const { Op } = Sequelize;
 
 const logger = createLogger({
   level: 'debug',
@@ -31,13 +34,9 @@ const insertTag = async (tagArray) => {
     insertedTags = tagArray.map(async (tagText) => {
       const newTag = await Tag.findOrCreate({
         where: {
-          tagText: {
-            [Op.eq]: tagText
-          }
+          tagText: { [Op.eq]: tagText }
         },
-        defaults: {
-          tagText
-        }
+        defaults: { tagText }
       });
       return newTag;
     });
@@ -92,9 +91,7 @@ export const createArticle = async (req, res) => {
         references,
         categoryId
       },
-      user: {
-        id: userId
-      }
+      user: { id: userId }
     } = req;
     // create the slug from the title by replacing spaces with hyphen
     // eg. "Introduction to writing" becomes "introduction-to-writing"
@@ -111,7 +108,7 @@ export const createArticle = async (req, res) => {
 
     if (req.body.tags) {
       const newArticleTags = req.body.tags;
-      const tagArray = formatTags(newArticleTags);
+      const tagArray = await formatTags(newArticleTags);
       const newTags = await insertTag(tagArray);
       newTags.forEach(async (tag) => {
         await newArticle.addTags(tag[0].id);
@@ -146,14 +143,7 @@ export const createArticle = async (req, res) => {
  */
 export const likeArticle = async (req, res) => {
   try {
-    const {
-      params: {
-        id: articleId
-      },
-      user: {
-        id: userId
-      }
-    } = req;
+    const { params: { id: articleId }, user: { id: userId } } = req;
 
     const foundImpression = await LikeDislike.findOne({
       where: {
@@ -588,6 +578,56 @@ export const deleteArticle = async (req, res) => {
     return res.status(500).send({
       status: 'Error',
       message: 'OOPS! an error occurred while trying to delete this article. log in and try again!'
+    });
+  }
+};
+
+/**
+ * @export
+ * @function filterArticle
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const filterArticle = async (req, res) => {
+  const { query: { searchStr, tag, author } } = req;
+  let foundArticles;
+
+  try {
+    if (searchStr && tag && author) {
+      foundArticles = await getArticlesByAllParams(author, tag, searchStr);
+    } else if (searchStr && tag) {
+      foundArticles = await getArticlesBySearchTagParams(tag, searchStr);
+    } else if (searchStr && author) {
+      foundArticles = await getArticlesBySearchAuthorParams(author, searchStr);
+    } else if (tag && author) {
+      foundArticles = await getArticlesByTagAuthorParams(tag, author);
+    } else if (searchStr) {
+      foundArticles = await getArticlesBySearchParam(searchStr);
+    } else if (tag) {
+      foundArticles = await getArticlesByTagParam(tag);
+    } else if (author) {
+      foundArticles = await getArticlesByAuthorParam(author);
+    }
+
+    if (!foundArticles.length) {
+      return res.status(404).send({
+        status: 'fail',
+        data: { message: 'No Article was found' }
+      });
+    }
+
+    return res.status(200).send({
+      status: 'success',
+      data: {
+        message: 'Articles found',
+        articles: foundArticles
+      }
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error occurred'
     });
   }
 };
