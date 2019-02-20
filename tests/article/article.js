@@ -979,7 +979,6 @@ describe('Tests for article resource', () => {
 
     before(async () => {
       await models.Category.bulkCreate(mockCategory);
-      // await models.Roles.bulkCreate(mockRoles);
 
       const { body: { data: { token: userToken1 } } } = await chai.request(app)
         .post('/api/users/login')
@@ -1116,16 +1115,6 @@ describe('Tests for article resource', () => {
         expect(message).to.equal('Article deleted successfully');
       });
 
-      it('should return an error for no Tags', async () => {
-        const res = await chai.request(app)
-          .get('/api/articles/tags')
-          .set('Authorization', `Bearer ${userToken}`);
-        const { body: { status, data: { message } } } = res;
-        expect(res).to.have.status(404);
-        expect(status).to.eql('fail');
-        expect(message).to.eql('No Tag was found');
-      });
-
       it('should return no article filtering with author', async () => {
         const res = await chai.request(app)
           .get('/api/articles/filter?searchStr=johnnybravo1')
@@ -1240,30 +1229,6 @@ describe('Tests for article resource', () => {
       expect(res).to.have.status(500);
       expect(status).to.eql('error');
       expect(message).to.eql('Internal server error occurred');
-    });
-  });
-
-  describe('Tests for get all tags', () => {
-    it('should return an article filtering with all params', async () => {
-      const res = await chai.request(app)
-        .get('/api/articles/tags')
-        .set('Authorization', `Bearer ${userToken}`);
-      const { body: { status, data: { message } } } = res;
-      expect(res).to.have.status(200);
-      expect(status).to.eql('success');
-      expect(message).to.eql('Tags found');
-    });
-
-    it('should fail on server error', async () => {
-      const tagStub = sinon.stub(Tag, 'findAll');
-      tagStub.rejects();
-
-      const res = await chai.request(app)
-        .get('/api/articles/tags')
-        .set('Authorization', `Bearer ${userToken}`);
-      expect(res).to.have.status(500);
-
-      tagStub.restore();
     });
   });
 });

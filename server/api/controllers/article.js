@@ -144,7 +144,7 @@ export const createArticle = async (req, res) => {
  */
 export const likeArticle = async (req, res) => {
   try {
-    const { params: { id: articleId }, user: { id: userId } } = req;
+    const { params: { articleId }, user: { id: userId } } = req;
 
     const foundImpression = await LikeDislike.findOne({
       where: {
@@ -223,7 +223,7 @@ export const dislikeArticle = async (req, res) => {
   try {
     const {
       params: {
-        id: articleId
+        articleId
       },
       user: {
         id: userId
@@ -513,7 +513,7 @@ export const getArticleRatings = async ({ params: { articleId } }, res) => {
 * @returns {Object} JSON object (JSend format)
 */
 export const getArticle = async (req, res) => {
-  const { params: { id: articleId } } = req;
+  const { params: { articleId } } = req;
   try {
     let foundArticle = await Article.findOne({
       where: { id: { [Op.eq]: articleId } },
