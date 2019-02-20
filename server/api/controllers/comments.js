@@ -1,18 +1,68 @@
+import { omit } from 'lodash';
 import {
-  Comment, Article, LikeComment, Sequelize
+  Comment,
+  User,
+  Article,
+  LikeComment,
+  Sequelize
 } from '../../models';
 
 import informBookmarkers from '../helpers/notification/bookmarkers';
 
-const { Op } = Sequelize;
+const {
+  Op
+} = Sequelize;
 
 export const postComment = async (req, res) => {
-  const { params: { articleId }, body: { commentBody }, user: { id: userId } } = req;
+  const {
+    params: {
+      articleId
+    },
+    body: {
+      commentBody
+    },
+    user: {
+      id: userId
+    }
+  } = req;
   try {
-    const newComment = await Comment.create({ commentBody, articleId, userId });
-
+    let newComment = await Comment.create({
+      commentBody,
+      articleId,
+      userId
+    });
     informBookmarkers(articleId, commentBody, userId);
-    return res.status(201).send({ status: 'success', data: newComment });
+
+    const comments = await Comment.findAll({
+      where: {
+        articleId: {
+          [Op.eq]: articleId
+        }
+      },
+      order: [['updatedAt', 'DESC']]
+    });
+
+    let allComments = comments.map(async (comment) => {
+      const user = await User.findById(comment.userId, {
+        attributes: {
+          exclude: ['id', 'username', 'email', 'password',
+            'role', 'bio', 'imageUrl', 'verified', 'createdAt', 'updatedAt']
+        },
+      });
+
+      const editedComment = omit(comment.toJSON(), ['userId']);
+      editedComment.user = user.toJSON();
+      return editedComment;
+    });
+
+    allComments = await Promise.all(allComments);
+    newComment = newComment.toJSON();
+    newComment.comments = allComments;
+
+    return res.status(201).send({
+      status: 'success',
+      data: newComment.comments
+    });
   } catch (error) {
     return res.status(500).send({
       status: 'error',
@@ -23,7 +73,15 @@ export const postComment = async (req, res) => {
 };
 
 export const updateComment = async (req, res) => {
-  const { params: { articleId, commentId }, body: { commentBody } } = req;
+  const {
+    params: {
+      articleId,
+      commentId
+    },
+    body: {
+      commentBody
+    }
+  } = req;
   try {
     const foundArticle = await Article.findByPk(articleId);
     if (!foundArticle) {
@@ -32,7 +90,13 @@ export const updateComment = async (req, res) => {
         message: 'Article not found'
       });
     }
-    const foundComments = await foundArticle.getComments({ where: { id: { [Op.eq]: commentId } } });
+    const foundComments = await foundArticle.getComments({
+      where: {
+        id: {
+          [Op.eq]: commentId
+        }
+      }
+    });
     const foundComment = foundComments[0];
 
     if (!foundComment) {
@@ -49,8 +113,12 @@ export const updateComment = async (req, res) => {
     });
 
     // update the comment
-    const updatedComment = await foundComment.update({ commentBody },
-      { returning: true, plain: true });
+    const updatedComment = await foundComment.update({
+      commentBody
+    }, {
+      returning: true,
+      plain: true
+    });
 
     const oldComments = await updatedComment.getCommentHistories();
     const comment = updatedComment.toJSON();
@@ -78,11 +146,24 @@ export const updateComment = async (req, res) => {
  */
 export const deleteComment = async (req, res) => {
   try {
-    const { params: { articleId, commentId }, user: { id: userId, role } } = req;
+    const {
+      params: {
+        articleId,
+        commentId
+      },
+      user: {
+        id: userId,
+        role
+      }
+    } = req;
     const foundComment = await Comment.findOne({
       where: {
-        id: { [Op.eq]: commentId },
-        articleId: { [Op.eq]: articleId },
+        id: {
+          [Op.eq]: commentId
+        },
+        articleId: {
+          [Op.eq]: articleId
+        },
       }
     });
 
@@ -130,10 +211,20 @@ export const deleteComment = async (req, res) => {
  */
 export const likeComment = async (req, res) => {
   try {
-    const { params: { commentId }, user: { id: userId } } = req;
+    const {
+      params: {
+        commentId
+      },
+      user: {
+        id: userId
+      }
+    } = req;
 
     await LikeComment.findOrCreate({
-      where: { commentId, userId }
+      where: {
+        commentId,
+        userId
+      }
     }).spread((like, created) => {
       if (created) {
         return res.status(201).send({

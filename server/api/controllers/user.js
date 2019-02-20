@@ -132,7 +132,7 @@ export const socialLogin = async (req, res) => {
     firstname, lastname, username, email, password, imageUrl
   } = req.user;
   try {
-    const [{ id, role }, isNew] = await User.findOrCreate({
+    const [{ id, role, isVerified }] = await User.findOrCreate({
       where: { email },
       defaults: {
         firstname, lastname, username, password, imageUrl
@@ -140,15 +140,15 @@ export const socialLogin = async (req, res) => {
     });
 
     let token;
-    const paramToken = isNew && signToken({ email }, '10m');
+    const paramToken = isVerified && signToken({ email }, '10m');
 
-    if (process.env.NODE_ENV === 'production' && isNew) {
+    if (process.env.NODE_ENV === 'production' && !isVerified) {
       try {
         await resetPasswordVerificationMail(username, email, paramToken);
       } catch (error) {
         logger.debug('Email Error::', error);
       }
-    } else if (!isNew) {
+    } else if (!isVerified) {
       token = signToken({
         sid: req.sessionID,
         id,
@@ -157,18 +157,15 @@ export const socialLogin = async (req, res) => {
       });
     }
 
-    return res.status(200).send({
-      status: 'success',
-      data: {
-        message: `${isNew ? `An email has been sent to ${email}. Follow contained instructions to verify your account and create password.` : 'Login Successful.'}`,
-        ...(
-          isNew ? { link: `${req.protocol}://${req.headers.host}/api/users/resetPassword/${paramToken}` }
-            : {
-              token, username, email, role
-            }
-        )
-      }
-    });
+    const verifiedUrl = `dashboard#token${token}`;
+
+    return res.redirect(
+      `https://denethor-ah-frontend-staging.herokuapp.com/${
+        isVerified
+          ? verifiedUrl
+          : 'signup?mailalert=true'
+      }`
+    );
   } catch (e) {
     return res.status(500).send({
       status: 'fail',
