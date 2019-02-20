@@ -84,5 +84,10 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
   User.passwordMatch = (encodedPassword, password) => bcrypt.compareSync(password, encodedPassword);
+  User.hashPassword = async (password) => {
+    const salt = await bcrypt.genSaltSync();
+    const hashedPassword = await bcrypt.hashSync(password, salt);
+    return hashedPassword;
+  };
   return User;
 };

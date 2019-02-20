@@ -337,6 +337,13 @@ export const unfollowUser = async (req, res) => {
   }
 };
 
+/**
+* @export
+* @function resetPasswordVerification
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @returns {Object} JSON object (JSend format)
+*/
 export const resetPasswordVerification = async (req, res) => {
   const { body: { email } } = req;
   try {
@@ -383,10 +390,12 @@ export const resetPasswordVerification = async (req, res) => {
 };
 
 /**
- * @param {Object} req - request received
- * @param {Object} res - response object
- * @returns {Object} response object
- */
+* @export
+* @function resetPassword
+* @param {Object} req - request received
+* @param {Object} res - response object
+* @returns {Object} JSON object (JSend format)
+*/
 export const resetPassword = async (req, res) => {
   try {
     const { params: { token }, body: { password } } = req;
@@ -402,8 +411,10 @@ export const resetPassword = async (req, res) => {
       });
     }
 
+    const hashedPassword = await User.hashPassword(password);
+
     const updatedUser = await foundUser.update(
-      { password, ...(!foundUser.isVerified && { isVerified: true }) },
+      { password: hashedPassword, ...(!foundUser.isVerified && { isVerified: true }) },
       {
         where: { email: { [Op.eq]: email } },
         returning: true,
