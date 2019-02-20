@@ -166,7 +166,7 @@ describe('Tests for article resource', () => {
 
       userToken4 = newToken;
 
-      const { body: { data: { id: newCommentId } } } = await chai.request(app)
+      const { body: { data: [{ id: newCommentId }] } } = await chai.request(app)
         .post(`/api/articles/${articleId}/comments`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({
@@ -182,7 +182,7 @@ describe('Tests for article resource', () => {
           .set('Authorization', `Bearer ${userToken}`)
           .send(comment);
         const {
-          body: { data: { id: newCommentId, commentBody, articleId: returnedArticleId } }
+          body: { data: [{ id: newCommentId, commentBody, articleId: returnedArticleId }] }
         } = res;
         commentId = newCommentId;
         expect(res).to.have.status(201);
@@ -768,6 +768,10 @@ describe('Tests for article resource', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send(mockArticle);
       articleId = res.body.data.id;
+      await chai.request(app)
+        .post(`/api/articles/${articleId}/comments`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(comment);
     });
 
     it('should return all articles', async () => {
@@ -837,7 +841,7 @@ describe('Tests for article resource', () => {
         .post(`/api/articles/${articleId}/comments`)
         .set('Authorization', `Bearer ${userToken}`)
         .send(comment);
-      commentId = res.body.data.id;
+      commentId = res.body.data[0].id;
     });
 
     it('should update a comment', async () => {

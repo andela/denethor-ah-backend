@@ -1,8 +1,9 @@
 import Sequelize from 'sequelize';
 import { createLogger, format, transports } from 'winston';
+import { omit } from 'lodash';
 import notifyFollowers from '../helpers/notification/followers';
 import {
-  User, Article, LikeDislike, Tag, Rating, Category
+  User, Article, LikeDislike, Tag, Rating, Category, Comment
 } from '../../models';
 import {
   getArticlesByAllParams, getArticlesBySearchTagParams, getArticlesBySearchAuthorParams,
@@ -529,9 +530,29 @@ export const getArticle = async (req, res) => {
         message: 'Resource not found'
       });
     }
+    const comments = await Comment.findAll({
+      where: { articleId: { [Op.eq]: foundArticle.id } },
+      order: [['updatedAt', 'DESC']]
+    });
+
+    let articleComments = comments.map(async (comment) => {
+      const user = await User.findById(comment.userId, {
+        attributes: {
+          exclude: ['id', 'username', 'email', 'password',
+            'role', 'bio', 'imageUrl', 'verified', 'createdAt', 'updatedAt']
+        },
+      });
+
+      const editedComment = omit(comment.toJSON(), ['userId']);
+      editedComment.user = user.toJSON();
+      return editedComment;
+    });
+
+    articleComments = await Promise.all(articleComments);
 
     foundArticle = foundArticle.toJSON();
     foundArticle.readTime = getReadTime(foundArticle.body);
+    foundArticle.comments = articleComments;
 
     return res.status(200).send({
       status: 'success',
