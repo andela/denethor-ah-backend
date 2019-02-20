@@ -10,7 +10,7 @@ import { ArticleReports, Article } from '../../models';
 export const reportArticle = async (req, res) => {
   try {
     const userId = req.user.id;
-    const articleId = req.params.id;
+    const { articleId } = req.params;
     const newReport = {
       userId,
       articleId

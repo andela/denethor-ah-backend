@@ -9,7 +9,7 @@ import { Shares, Article } from '../../models';
  */
 export const shareArticle = async (req, res) => {
   try {
-    const articleId = req.params.id;
+    const { articleId } = req.params;
     const shareType = req.query.sharetype;
 
     if (shareType !== 'facebook' && shareType !== 'twitter') {

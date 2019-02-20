@@ -1,6 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
   const Tag = sequelize.define('Tag', {
     tagText: DataTypes.TEXT,
+  },
+  {
+    timestamps: false
   });
 
   Tag.associate = (models) => {

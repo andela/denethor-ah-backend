@@ -11,6 +11,7 @@ import auth from './server/api/middlewares/authentication/authenticate';
 import userRoute from './server/api/routes/user';
 import articleRoute from './server/api/routes/article';
 import bookmarkRoutes from './server/api/routes/bookmark';
+import tagsRoute from './server/api/routes/tags';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use(express.static(`${__dirname}/public`));
 app.use(auth.initialize());
 app.use('/api/users', userRoute);
 app.use('/api/articles', articleRoute);
+app.use('/api/tags', tagsRoute);
 app.use('/docs', swagger.serve, swagger.setup(swaggerDocument));
 app.use('/api', bookmarkRoutes);
 
