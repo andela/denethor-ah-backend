@@ -586,7 +586,7 @@ module.exports = {
       }
     },
 
-    'articles/': {
+    '/articles/?category': {
       post: {
         tags: ['Articles'],
         summary: 'A user with a valid token can create an article',
@@ -647,12 +647,24 @@ module.exports = {
       },
       get: {
         tags: ['Articles'],
-        summary: 'A user can get all articles',
+        summary: 'A user can get all articles with a specific category',
         consumes: ['application/x-www-form-urlencoded'],
-        description: 'Get all users that have written an article at least once',
+        description: 'A user can get all articles with a specific category',
+        parameters: [
+          {
+            name: 'category',
+            in: 'query',
+            description: 'The category name of the article',
+            required: false,
+            type: 'string'
+          },
+        ],
         responses: {
           200: {
             description: 'Successful'
+          },
+          404: {
+            description: 'The category type does not exist'
           },
           500: {
             description: 'Internal server error'
