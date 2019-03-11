@@ -4,8 +4,7 @@ import GoogleStrategy from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import env from 'dotenv';
-
-import { User } from '../../../models';
+import { User, sequelize } from '../../../models';
 
 env.config();
 
@@ -61,8 +60,12 @@ passport.use(twitterStrategy);
 passport.use(new JWTStrategy(options, async (payload, done) => {
   try {
     const user = await User.findByPk(payload.id);
+    const session = await sequelize.queryInterface.sequelize.query('SELECT * FROM session WHERE sid = ?', {
+      replacements: [payload.sid],
+      type: sequelize.QueryTypes.SELECT
+    });
 
-    if (!user) {
+    if (!user || !session) {
       return done('Unauthorized', false);
     }
 
