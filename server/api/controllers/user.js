@@ -49,7 +49,7 @@ export const registerUser = async (req, res) => {
     });
 
     const link = process.env.NODE_ENV === 'production'
-      ? `${process.env.REACT_ENDPOINT}/api/${createdUser.id}/verify`
+      ? `${process.env.REACT_ENDPOINT}/api/users/${createdUser.id}/verify`
       : `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}/verify`;
 
     if (process.env.NODE_ENV === 'production') {
