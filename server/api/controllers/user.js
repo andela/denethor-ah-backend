@@ -47,7 +47,10 @@ export const registerUser = async (req, res) => {
       email,
       password,
     });
-    const link = `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}/verify`;
+
+    const link = process.env.NODE_ENV === 'production'
+      ? `${process.env.REACT_ENDPOINT}/api/${createdUser.id}/verify`
+      : `${req.protocol}://${req.headers.host}/api/users/${createdUser.id}/verify`;
 
     if (process.env.NODE_ENV === 'production') {
       try {
@@ -100,7 +103,12 @@ export const verifyUser = async (req, res) => {
 
     const { email, username, role } = await unverifiedUser.update({ isVerified: true },
       { returning: true, plain: true });
-    const token = signToken({ id, email, role });
+    const token = signToken({
+      sid: req.sessionID,
+      id,
+      email,
+      role
+    });
 
     return res.status(200).send({
       status: 'success',
@@ -140,8 +148,13 @@ export const socialLogin = async (req, res) => {
       } catch (error) {
         logger.debug('Email Error::', error);
       }
-    } else {
-      token = signToken({ id, email, role });
+    } else if (!isNew) {
+      token = signToken({
+        sid: req.sessionID,
+        id,
+        email,
+        role
+      });
     }
 
     return res.status(200).send({
@@ -215,7 +228,12 @@ export const loginUser = async (req, res) => {
 
   const { id, role } = foundUser;
 
-  const token = signToken({ id, email, role });
+  const token = signToken({
+    sid: req.sessionID,
+    id,
+    email,
+    role
+  });
 
   return res.status(200).send({
     status: 'success',
