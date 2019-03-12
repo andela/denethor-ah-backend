@@ -744,6 +744,15 @@ describe('Tests for article resource', () => {
       expect(status).to.equal('Error');
       expect(message).to.eql('OOPS! an error occurred while trying to rate article. log in and try again!');
     });
+
+    it('Should get all ratings', async () => {
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId}/ratings`);
+      const { body: { status, data } } = res;
+      expect(res).to.have.status(200);
+      expect(status).to.equal('success');
+      expect(data.rows[0].averageRating).to.eql('4.0000000000000000');
+    });
   });
 
   describe('Tests for get an article', () => {
