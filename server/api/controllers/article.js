@@ -463,6 +463,47 @@ export const getAllArticles = async ({ query: { n = 0, category } }, res) => {
 };
 
 
+export const getArticleRatings = async ({ params: { articleId } }, res) => {
+  try {
+    const foundArticle = await Article.findOne({
+      where: {
+        id: {
+          [Op.eq]: articleId
+        },
+      }
+    });
+
+    if (!foundArticle) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'Article not found'
+      });
+    }
+
+    if (foundArticle) {
+      const allRatings = await (Rating.findAndCountAll({
+        attributes: [
+          [foundArticle.sequelize.fn('AVG',
+            foundArticle.sequelize.col('rating')), 'averageRating']
+        ],
+        where: {
+          articleId
+        }
+      }));
+
+      res.status(200).send({
+        status: 'success',
+        data: allRatings
+      });
+    }
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+};
+
 /**
 * @export
 * @function getArticle
