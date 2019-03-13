@@ -140,7 +140,7 @@ export const socialLogin = async (req, res) => {
     });
 
     let token;
-    const paramToken = isVerified && signToken({ email }, '10m');
+    const paramToken = !isVerified && signToken({ email }, '10m');
 
     if (process.env.NODE_ENV === 'production' && !isVerified) {
       try {
@@ -148,7 +148,7 @@ export const socialLogin = async (req, res) => {
       } catch (error) {
         logger.debug('Email Error::', error);
       }
-    } else if (!isVerified) {
+    } else if (isVerified) {
       token = signToken({
         sid: req.sessionID,
         id,
@@ -157,7 +157,7 @@ export const socialLogin = async (req, res) => {
       });
     }
 
-    const verifiedUrl = `dashboard#token${token}`;
+    const verifiedUrl = `dashboard#token=${token}`;
 
     return res.redirect(
       `${process.env.REACT_ENDPOINT}/${
@@ -393,7 +393,7 @@ export const resetPasswordVerification = async (req, res) => {
       status: 'success',
       data: {
         message: `A confirmation email has been sent to ${foundUser.email}. Click on the confirmation button to verify the account`,
-        link: `${req.protocol}://${req.headers.host}/api/users/resetPassword/${token}`
+        link: `${process.env.REACT_ENDPOINT}/passwordreset#token=${token}`
       },
     });
   } catch (e) {

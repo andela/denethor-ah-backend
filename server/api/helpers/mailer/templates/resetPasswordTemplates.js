@@ -78,7 +78,7 @@ const verifyTemplate = (username, token) => `
                               </tr>
                               <tr>
                                 <td valign="top" width="48%" align="center"> <span>
-                                    <a href="https://localhost:8000/resetPassoword/${token}" style="display:block; padding:15px 25px; background-color:#0087D1; color:#ffffff; border-radius:3px; text-decoration:none;">Change Password
+                                    <a href="${process.env.REACT_ENDPOINT}/passwordreset#token=${token}" style="display:block; padding:15px 25px; background-color:#0087D1; color:#ffffff; border-radius:3px; text-decoration:none;">Change Password
                                    </a>
                                   </span>
                                 </td>
