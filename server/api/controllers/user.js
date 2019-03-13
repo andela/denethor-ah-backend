@@ -160,7 +160,7 @@ export const socialLogin = async (req, res) => {
     const verifiedUrl = `dashboard#token${token}`;
 
     return res.redirect(
-      `https://denethor-ah-frontend-staging.herokuapp.com/${
+      `${process.env.REACT_ENDPOINT}/${
         isVerified
           ? verifiedUrl
           : 'signup?mailalert=true'
