@@ -11,3 +11,7 @@ JWT_SECRET=<...>
 SESS_SECRET=<sessionSecret>
 SENDGRID_KEY=<...>
 ADMIN_PASS=<...>
+CLOUDINARY_API_KEY=<...>
+CLOUDINARY_API_SECRET=<...>
+CLOUD_NAME=<...>
+REACT_ENDPOINT=https://denethor-ah-frontend-staging.herokuapp.com

@@ -145,10 +145,12 @@ describe('Tests for article resource', () => {
   });
 
   describe('Tests cases for comments', () => {
+    let articleId2;
     let commentId;
     let commentId2;
     const fakeCommentId = 'fakeCommentId';
     const fakeUUIDCommentId = 'ae43b025-39a3-4514-b26d-eb9a3f11328f';
+    const fakeArticleId = 'd8725ebc-826b-4262-aa1b-24bdf110a01';
     before(async () => {
       const { body: { data: { id } } } = await chai.request(app)
         .post('/api/articles')
@@ -156,6 +158,12 @@ describe('Tests for article resource', () => {
         .send(mockArticle);
 
       articleId = id;
+      const { body: { data: { id: id2 } } } = await chai.request(app)
+        .post('/api/articles')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(mockArticle);
+
+      articleId2 = id2;
 
       const { body: { data: { link: newLink } } } = await chai.request(app)
         .post('/api/users')
@@ -166,12 +174,10 @@ describe('Tests for article resource', () => {
 
       userToken4 = newToken;
 
-      const { body: { data: [{ id: newCommentId }] } } = await chai.request(app)
+      const { body: { data: { id: newCommentId } } } = await chai.request(app)
         .post(`/api/articles/${articleId}/comments`)
         .set('Authorization', `Bearer ${userToken}`)
-        .send({
-          commentBody: 'Nice Article'
-        });
+        .send(comment);
       commentId2 = newCommentId;
     });
 
@@ -182,7 +188,7 @@ describe('Tests for article resource', () => {
           .set('Authorization', `Bearer ${userToken}`)
           .send(comment);
         const {
-          body: { data: [{ id: newCommentId, commentBody, articleId: returnedArticleId }] }
+          body: { data: { id: newCommentId, commentBody, articleId: returnedArticleId } }
         } = res;
         commentId = newCommentId;
         expect(res).to.have.status(201);
@@ -261,6 +267,34 @@ describe('Tests for article resource', () => {
         expect(res).to.have.status(404);
         expect(status).to.eql('fail');
         expect(message).to.eql('No comment was found');
+      });
+      describe('Tests for get article Comments', () => {
+        it('Should get article Comments if request is correct', async () => {
+          const res = await chai.request(app)
+            .get(`/api/articles/${articleId}/comments/`);
+          const { body: { status, message } } = res;
+          expect(res).to.have.status(200);
+          expect(status).to.equal('success');
+          expect(message).to.equal('Comments retrieved successfully');
+        });
+
+        it('Should return fail if there are no comment for the article', async () => {
+          const res = await chai.request(app)
+            .get(`/api/articles/${articleId2}/comments/`);
+          const { body: { status, message } } = res;
+          expect(res).to.have.status(404);
+          expect(status).to.equal('fail');
+          expect(message).to.equal('No comment yet. Be the first to comment on this article');
+        });
+
+        it('Should return error if article id is incorrrect', async () => {
+          const res = await chai.request(app)
+            .get(`/api/articles/${fakeArticleId}/comments/`);
+          const { body: { status, message } } = res;
+          expect(res).to.have.status(500);
+          expect(status).to.equal('error');
+          expect(message).to.equal('Internal Server Error!');
+        });
       });
     });
     describe('Tests for like comment', () => {
@@ -837,11 +871,11 @@ describe('Tests for article resource', () => {
         .send(mockArticle);
       article2Id = res.body.data.id;
 
-      res = await chai.request(app)
+      const { body: { data: { id: newCommentId } } } = await chai.request(app)
         .post(`/api/articles/${articleId}/comments`)
         .set('Authorization', `Bearer ${userToken}`)
         .send(comment);
-      commentId = res.body.data[0].id;
+      commentId = newCommentId;
     });
 
     it('should update a comment', async () => {
