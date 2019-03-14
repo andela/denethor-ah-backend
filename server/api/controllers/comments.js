@@ -1,4 +1,6 @@
-import { omit } from 'lodash';
+import {
+  omit
+} from 'lodash';
 import {
   Comment,
   User,
@@ -33,20 +35,70 @@ export const postComment = async (req, res) => {
     });
     informBookmarkers(articleId, commentBody, userId);
 
-    const comments = await Comment.findAll({
+    const user = await User.findById(newComment.userId, {
+      attributes: {
+        exclude: ['id', 'username', 'email', 'password',
+          'role', 'bio', 'imageUrl', 'verified', 'createdAt', 'updatedAt'
+        ]
+      },
+    });
+
+    newComment = newComment.toJSON();
+    newComment.user = user;
+
+    return res.status(201).send({
+      status: 'success',
+      data: newComment
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Error saving comment',
+      data: error
+    });
+  }
+};
+
+/**
+ * @export
+ * @function getAllComments
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const getArticleComments = async (req, res) => {
+  const {
+    params: {
+      articleId
+    }
+  } = req;
+  try {
+    const allComments = await Comment.findAll({
+      attributes: {
+        exclude: ['id', 'articleId'
+        ]
+      },
       where: {
         articleId: {
           [Op.eq]: articleId
         }
       },
-      order: [['updatedAt', 'DESC']]
+      order: [
+        ['updatedAt', 'DESC']
+      ]
     });
-
-    let allComments = comments.map(async (comment) => {
+    if (!allComments.length) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'No comment yet. Be the first to comment on this article'
+      });
+    }
+    let articleComments = allComments.map(async (comment) => {
       const user = await User.findById(comment.userId, {
         attributes: {
           exclude: ['id', 'username', 'email', 'password',
-            'role', 'bio', 'imageUrl', 'verified', 'createdAt', 'updatedAt']
+            'role', 'bio', 'imageUrl', 'verified', 'createdAt', 'updatedAt', 'notifications', 'isVerified'
+          ]
         },
       });
 
@@ -55,19 +107,17 @@ export const postComment = async (req, res) => {
       return editedComment;
     });
 
-    allComments = await Promise.all(allComments);
-    newComment = newComment.toJSON();
-    newComment.comments = allComments;
+    articleComments = await Promise.all(articleComments);
 
-    return res.status(201).send({
+    return res.status(200).send({
       status: 'success',
-      data: newComment.comments
+      message: 'Comments retrieved successfully',
+      articleComments
     });
   } catch (error) {
     return res.status(500).send({
       status: 'error',
-      message: 'Error saving comment',
-      data: error
+      message: 'Internal Server Error!'
     });
   }
 };
