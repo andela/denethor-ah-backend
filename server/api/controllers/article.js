@@ -11,6 +11,8 @@ import {
   getArticlesByAuthorParam
 } from '../helpers/search';
 
+import getReadTime from '../helpers/getReadTime';
+
 const { Op } = Sequelize;
 
 const logger = createLogger({
@@ -45,34 +47,6 @@ const insertTag = async (tagArray) => {
   } catch (error) {
     logger.debug('Tag already present in database');
   }
-};
-
-/**
-* @export
-* @function getReadTime
-* @param {String} articleBody - article.body
-* @returns {String} - Read Time eg '2 minutes'
-*/
-export const getReadTime = (articleBody) => {
-  // Read time is based on the average reading speed of an adult (roughly 275 WPM).
-  // We take the total word count of a post and translate it into minutes.
-  // Then, we add 12 seconds for each inline image.
-  // TIME = DISTANCE / SPEED
-  const words = articleBody.split(' ');
-  const wordCount = words.length;
-
-  const readTimeInMinutes = wordCount / 275;
-  let readTimeInSeconds = readTimeInMinutes * 60;
-
-  const imagesFound = articleBody.split('<img'); // search for image tags
-
-  imagesFound.forEach(() => {
-    readTimeInSeconds += 12; // add 12 seconds for each inline image
-  });
-
-  let readTime = Math.ceil(readTimeInSeconds / 60); // convert back to minutes
-  readTime += readTime > 1 ? ' minutes' : ' minute';
-  return readTime;
 };
 
 /**
@@ -161,7 +135,7 @@ export const likeArticle = async (req, res) => {
       const newImpression = await LikeDislike.create({
         articleId,
         userId,
-        like: true
+        likeImpression: true
       });
       return res.status(200).send({
         status: 'success',
@@ -172,9 +146,9 @@ export const likeArticle = async (req, res) => {
       });
     }
 
-    if (foundImpression && foundImpression.like) {
+    if (foundImpression && foundImpression.likeImpression) {
       const updatedImpression = await foundImpression.update({
-        like: false
+        likeImpression: false
       }, {
         returning: true,
         plain: true
@@ -188,10 +162,10 @@ export const likeArticle = async (req, res) => {
       });
     }
 
-    if (foundImpression && !foundImpression.like) {
+    if (foundImpression && !foundImpression.likeImpression) {
       const updatedImpression = await foundImpression.update({
-        like: true,
-        dislike: false
+        likeImpression: true,
+        dislikeImpression: false
       }, {
         returning: true,
         plain: true
@@ -245,7 +219,7 @@ export const dislikeArticle = async (req, res) => {
       const newImpression = await LikeDislike.create({
         articleId,
         userId,
-        dislike: true
+        dislikeImpression: true
       });
       return res.status(201).send({
         status: 'success',
@@ -256,9 +230,9 @@ export const dislikeArticle = async (req, res) => {
       });
     }
 
-    if (foundImpression && foundImpression.dislike) {
+    if (foundImpression && foundImpression.dislikeImpression) {
       const updatedImpression = await foundImpression.update({
-        dislike: false
+        dislikeImpression: false
       }, {
         returning: true,
         plain: true
@@ -272,10 +246,10 @@ export const dislikeArticle = async (req, res) => {
       });
     }
 
-    if (foundImpression && !foundImpression.dislike) {
+    if (foundImpression && !foundImpression.dislikeImpression) {
       const updatedImpression = await foundImpression.update({
-        like: false,
-        dislike: true
+        likeImpression: false,
+        dislikeImpression: true
       }, {
         returning: true,
         plain: true
@@ -482,15 +456,7 @@ export const getArticleRatings = async ({ params: { articleId } }, res) => {
     }
 
     if (foundArticle) {
-      const allRatings = await (Rating.findAndCountAll({
-        attributes: [
-          [foundArticle.sequelize.fn('AVG',
-            foundArticle.sequelize.col('rating')), 'averageRating']
-        ],
-        where: {
-          articleId
-        }
-      }));
+      const allRatings = await foundArticle.getArticleRatings();
 
       res.status(200).send({
         status: 'success',
@@ -743,6 +709,73 @@ export const getTags = async (req, res) => {
     return res.status(500).send({
       status: 'error',
       message: 'Something went wrong'
+    });
+  }
+};
+
+
+/**
+ * @export
+ * @function getArticleLikes
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const getArticleLikes = async (req, res) => {
+  const { params: { articleId } } = req;
+
+  try {
+    const foundArticle = await Article.findByPk(articleId);
+
+    if (!foundArticle) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'Article not found'
+      });
+    }
+
+    const articleLikes = await foundArticle.getLikes();
+
+    return res.status(200).send({
+      data: articleLikes
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+/**
+ * @export
+ * @function getArticleDislikes
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const getArticleDislikes = async (req, res) => {
+  const { params: { articleId } } = req;
+
+  try {
+    const foundArticle = await Article.findByPk(articleId);
+
+    if (!foundArticle) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'Article not found'
+      });
+    }
+
+    const articleDislikes = await foundArticle.getDislikes();
+
+    return res.status(200).send({
+      data: articleDislikes
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal Server Error'
     });
   }
 };

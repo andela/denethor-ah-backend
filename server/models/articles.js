@@ -37,7 +37,17 @@ module.exports = (sequelize, DataTypes) => {
     });
     Article.hasMany(models.LikeDislike, {
       foreignKey: 'articleId',
-      as: 'LikeDislikes',
+      as: 'likes',
+      scope: {
+        likeImpression: true
+      }
+    });
+    Article.hasMany(models.LikeDislike, {
+      foreignKey: 'articleId',
+      as: 'dislikes',
+      scope: {
+        dislikeImpression: true
+      }
     });
     Article.hasMany(models.Rating, {
       foreignKey: 'articleId',

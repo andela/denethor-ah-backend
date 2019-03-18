@@ -1,8 +1,6 @@
-/* eslint-disable import/no-cycle */
-
 import Sequelize from 'sequelize';
 import { User, Tag, Article } from '../../models';
-import { getReadTime } from '../controllers/article';
+import getReadTime from './getReadTime';
 
 const { Op } = Sequelize;
 let foundAuthorId;
