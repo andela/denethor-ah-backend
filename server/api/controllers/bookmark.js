@@ -30,7 +30,9 @@ export const createBookmark = async (req, res) => {
     const articleTitle = foundArticle.title;
 
     await Bookmark.findOrCreate({
-      where: { userId, bookmarkTitle: articleTitle, articleUrl: link }
+      where: {
+        userId, bookmarkTitle: articleTitle, articleUrl: link
+      }
     }).spread((bookmark, created) => {
       if (created) {
         return res.status(201).send({
