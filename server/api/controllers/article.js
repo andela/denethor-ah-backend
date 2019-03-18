@@ -737,6 +737,7 @@ export const getArticleLikes = async (req, res) => {
     const articleLikes = await foundArticle.getLikes();
 
     return res.status(200).send({
+      status: 'success',
       data: articleLikes
     });
   } catch (error) {
@@ -770,6 +771,7 @@ export const getArticleDislikes = async (req, res) => {
     const articleDislikes = await foundArticle.getDislikes();
 
     return res.status(200).send({
+      status: 'success',
       data: articleDislikes
     });
   } catch (e) {

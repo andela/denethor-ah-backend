@@ -22,8 +22,8 @@ articlesRouter.post('/:articleId/ratings', passport.authenticate('jwt', { sessio
 articlesRouter.get('/:articleId', getArticle);
 articlesRouter.put('/:articleId', passport.authenticate('jwt', { session: false }), updateArticleValidator, updateArticle);
 articlesRouter.delete('/:articleId', passport.authenticate('jwt', { session: false }), deleteArticle);
-articlesRouter.get('/:articleId/likes', passport.authenticate('jwt', { session: false }), getArticleLikes);
-articlesRouter.get('/:articleId/dislikes', passport.authenticate('jwt', { session: false }), getArticleDislikes);
+articlesRouter.get('/:articleId/likes', getArticleLikes);
+articlesRouter.get('/:articleId/dislikes', getArticleDislikes);
 
 articlesRouter.post('/:articleId/report', passport.authenticate('jwt', { session: false }), reportArticle);
 articlesRouter.post('/:articleId/share', shareArticle);

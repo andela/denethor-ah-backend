@@ -443,6 +443,80 @@ describe('Tests for article resource', () => {
     });
   });
 
+  describe('Tests for retrieving article likes', () => {
+    it('should return likes for an article', async () => {
+      await chai.request(app)
+        .patch(`/api/articles/${articleId}/likes`)
+        .set('Authorization', `Bearer ${userToken}`);
+
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId}/likes`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status } } = res;
+      expect(res).to.have.status(200);
+      expect(res.body.data.length > 0).to.equal(true);
+      expect(status).to.equal('success');
+    });
+
+    it('should fail when article is not found', async () => {
+      const res = await chai.request(app)
+        .get('/api/articles/6d9a753e-f8e4-418c-b4a3-9b1fba73774a/likes')
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status } } = res;
+      expect(res).to.have.status(404);
+      expect(status).to.equal('fail');
+    });
+
+    it('should fail on server error', async () => {
+      const articleStub = sinon.stub(Article, 'findByPk');
+      articleStub.rejects();
+
+      const res = await chai.request(app)
+        .get('/api/articles/6d9a753e-f8e4-418c-b4a3-9b1fba73774a/dislikes')
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(res).to.have.status(500);
+
+      articleStub.restore();
+    });
+  });
+
+  describe('Tests for retrieving article dislikes', () => {
+    it('should return dislikes for an article', async () => {
+      await chai.request(app)
+        .patch(`/api/articles/${articleId}/dislikes`)
+        .set('Authorization', `Bearer ${userToken}`);
+
+      const res = await chai.request(app)
+        .get(`/api/articles/${articleId}/dislikes`)
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status } } = res;
+      expect(res).to.have.status(200);
+      expect(res.body.data.length > 0).to.equal(true);
+      expect(status).to.equal('success');
+    });
+
+    it('should fail when article is not found', async () => {
+      const res = await chai.request(app)
+        .get('/api/articles/6d9a753e-f8e4-418c-b4a3-9b1fba73774a/dislikes')
+        .set('Authorization', `Bearer ${userToken}`);
+      const { body: { status } } = res;
+      expect(res).to.have.status(404);
+      expect(status).to.equal('fail');
+    });
+
+    it('should fail on server error', async () => {
+      const articleStub = sinon.stub(Article, 'findByPk');
+      articleStub.rejects();
+
+      const res = await chai.request(app)
+        .get('/api/articles/6d9a753e-f8e4-418c-b4a3-9b1fba73774a/dislikes')
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(res).to.have.status(500);
+
+      articleStub.restore();
+    });
+  });
+
   describe('Tests for highlighting and commenting Articles', () => {
     let articleId2;
     let highlightId;
