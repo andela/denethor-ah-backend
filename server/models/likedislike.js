@@ -1,11 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
   const LikeDislike = sequelize.define('LikeDislike', {
-    like: {
+    likeImpression: {
       allowNull: false,
       defaultValue: false,
       type: DataTypes.BOOLEAN
     },
-    dislike: {
+    dislikeImpression: {
       allowNull: false,
       defaultValue: false,
       type: DataTypes.BOOLEAN

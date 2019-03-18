@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { getReadTime } from '../../server/api/controllers/article';
+import getReadTime from '../../server/api/helpers/getReadTime';
 
 describe('Tests for article read time utility', () => {
   const dummyArticleBody = `Our original read time calculation was geared toward “slow” images, like comics, where you would really want to sit down and invest in the image. This resulted in articles with crazy big read times. For instance, this article containing 140 images was clocking in at a whopping 87 minute read. So we amended our read time calculation to count 12 seconds for the first image, 11 for the second, and minus an additional second for each subsequent image. Any images after the tenth image are counted at three seconds.

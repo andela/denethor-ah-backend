@@ -782,10 +782,9 @@ describe('Tests for article resource', () => {
     it('Should get all ratings', async () => {
       const res = await chai.request(app)
         .get(`/api/articles/${articleId}/ratings`);
-      const { body: { status, data } } = res;
+      const { body: { status } } = res;
       expect(res).to.have.status(200);
       expect(status).to.equal('success');
-      expect(data.rows[0].averageRating).to.eql('4.0000000000000000');
     });
   });
 

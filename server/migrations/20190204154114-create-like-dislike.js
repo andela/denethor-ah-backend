@@ -26,12 +26,12 @@ module.exports = {
         as: 'articleId',
       },
     },
-    like: {
+    likeImpression: {
       allowNull: false,
       defaultValue: false,
       type: Sequelize.BOOLEAN
     },
-    dislike: {
+    dislikeImpression: {
       allowNull: false,
       defaultValue: false,
       type: Sequelize.BOOLEAN

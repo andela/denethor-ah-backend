@@ -4,7 +4,8 @@ import passport from 'passport';
 import { newArticleValidator, ratingValidator, updateArticleValidator } from '../middlewares/validation/article';
 import {
   createArticle, updateArticle, likeArticle, dislikeArticle, rateArticle,
-  getAllArticles, getArticle, deleteArticle, filterArticle, getArticleRatings
+  getAllArticles, getArticle, deleteArticle, filterArticle, getArticleRatings,
+  getArticleLikes, getArticleDislikes
 } from '../controllers/article';
 import { reportArticle } from '../controllers/reports';
 import { shareArticle } from '../controllers/shares';
@@ -21,6 +22,8 @@ articlesRouter.post('/:articleId/ratings', passport.authenticate('jwt', { sessio
 articlesRouter.get('/:articleId', getArticle);
 articlesRouter.put('/:articleId', passport.authenticate('jwt', { session: false }), updateArticleValidator, updateArticle);
 articlesRouter.delete('/:articleId', passport.authenticate('jwt', { session: false }), deleteArticle);
+articlesRouter.get('/:articleId/likes', passport.authenticate('jwt', { session: false }), getArticleLikes);
+articlesRouter.get('/:articleId/dislikes', passport.authenticate('jwt', { session: false }), getArticleDislikes);
 
 articlesRouter.post('/:articleId/report', passport.authenticate('jwt', { session: false }), reportArticle);
 articlesRouter.post('/:articleId/share', shareArticle);
