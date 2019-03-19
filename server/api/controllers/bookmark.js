@@ -15,7 +15,7 @@ const {
 
 export const createBookmark = async (req, res) => {
   try {
-    const { params: { articleId }, user: { id: userId } } = req;
+    const { query: { articleId }, user: { id: userId } } = req;
 
     const foundArticle = await Article.findOne({ where: { id: articleId } });
 
@@ -54,7 +54,7 @@ export const createBookmark = async (req, res) => {
 
 export const deleteBookmark = async (req, res) => {
   try {
-    const { params: { articleId }, user: { id: userId } } = req;
+    const { query: { articleId }, user: { id: userId } } = req;
 
     const link = `${domain}/api/articles/${articleId}`;
 
@@ -89,9 +89,14 @@ export const deleteBookmark = async (req, res) => {
 };
 export const getUserBookmarks = async (req, res) => {
   try {
-    const { params: { userId } } = req;
+    const { query: { userId } } = req;
+    const limit = 10;
 
-    const userBookmarks = await Bookmark.findAll({ attributes: { exclude: ['userId', 'id'] }, where: { userId: { [Op.eq]: userId } } });
+    const userBookmarks = await Bookmark.findAll({
+      attributes: { exclude: ['userId', 'id'] },
+      where: { userId: { [Op.eq]: userId } },
+      limit
+    });
     if (!userBookmarks.length) {
       return res.status(404).send({
         status: 'fail',

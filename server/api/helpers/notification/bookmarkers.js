@@ -15,9 +15,8 @@ export default async (articleId, commentBody, commenterId) => {
   const info = {
     commenter, commentBody, articleId, title
   };
-
-  bookmarks.forEach(async ({ userId }) => {
-    const { firstname, email } = await User.findByPk(userId);
-    articleGotNewComment({ ...info, firstname }, email);
+  bookmarks.forEach(async ({ userId: id }) => {
+    const { firstname, email, id: userId } = await User.findByPk(id);
+    articleGotNewComment({ ...info, firstname, userId }, email);
   });
 };

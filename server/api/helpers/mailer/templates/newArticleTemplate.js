@@ -1,5 +1,5 @@
 export default ({
-  firstname, author, id, title
+  firstname, author, id, title, userId
 }) => `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -100,12 +100,12 @@ export default ({
                         <td height="10">&nbsp;</td>
                       </tr>
                       <tr>
-                        <td valign="top" align="center"> <span style="font-family: -apple-system,BlinkMacSystemFont,&#39;Segoe UI&#39;,&#39;Roboto&#39;,&#39;Oxygen&#39;,&#39;Ubuntu&#39;,&#39;Cantarell&#39;,&#39;Fira Sans&#39;,&#39;Droid Sans&#39;,&#39;Helvetica Neue&#39;,sans-serif; color:#9EB0C9; font-size:10px;">&copy;
+                        <td valign="top" align="center"> <span style="font-family: -apple-system,BlinkMacSystemFont,&#39;Segoe UI&#39;,&#39;Roboto&#39;,&#39;Oxygen&#39;,&#39;Ubuntu&#39;,&#39;Cantarell&#39;,&#39;Fira Sans&#39;,&#39;Droid Sans&#39;,&#39;Helvetica Neue&#39;,sans-serif; color:#9EB0C9; font-size:12px;">&copy;
                             <a href="#" target="_blank" style="color:#9EB0C9 !important; text-decoration:none;">Author's
                               Haven</a>
                             &nbsp;&nbsp;|&nbsp;&nbsp;
-                            <a href="https://reallygoodemails.com/" target="_blank" style="color:#9EB0C9 !important; text-decoration:none;">Courtesy
-                              of Really Good Emails</a>
+                            <a href=${process.env.REACT_ENDPOINT}/api/users/${userId}/unsubscribe style="color:#9EB0C9 !important;">Unsubscribe
+                          </a>from all future emails.
                           </span>
                         </td>
                       </tr>

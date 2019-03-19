@@ -40,6 +40,6 @@ userRouter.get('/:userId/profile', getUserProfile);
 userRouter.patch('/:userId/profile', passport.authenticate('jwt', { session: false }),
   profileUpdateValidation, updateUserProfile);
 
-userRouter.patch('/:id/unsubscribe', passport.authenticate('jwt', { session: false }), unsubscribeMail);
+userRouter.patch('/:id/unsubscribe', unsubscribeMail);
 
 export default userRouter;

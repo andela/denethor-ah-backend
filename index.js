@@ -40,7 +40,7 @@ app.use('/api/users', userRoute);
 app.use('/api/articles', articleRoute);
 app.use('/api/tags', tagsRoute);
 app.use('/docs', swagger.serve, swagger.setup(swaggerDocument));
-app.use('/api', bookmarkRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
 
 app.get('/', (req, res) => res.status(200).send({
   status: 'connection successful',
