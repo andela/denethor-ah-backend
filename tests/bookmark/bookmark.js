@@ -59,7 +59,7 @@ describe('Tests for Bookmark resources', () => {
   describe('Tests for create Article Bookmark', () => {
     it('Should bookmark article if request is correct', async () => {
       const res = await chai.request(app)
-        .post(`/api/articles/${articleId}/bookmark`)
+        .post(`/api/bookmarks/?articleId=${articleId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(201);
@@ -69,7 +69,7 @@ describe('Tests for Bookmark resources', () => {
 
     it('Should not bookmark if article has already been bookmarked by the user', async () => {
       const res = await chai.request(app)
-        .post(`/api/articles/${articleId}/bookmark`)
+        .post(`/api/bookmarks/?articleId=${articleId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(409);
@@ -79,7 +79,7 @@ describe('Tests for Bookmark resources', () => {
 
     it('Should return error if article does not exist', async () => {
       const res = await chai.request(app)
-        .post(`/api/articles/${nonExistingArticleId}/bookmark`)
+        .post(`/api/bookmarks/?articleId=${nonExistingArticleId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(404);
@@ -89,7 +89,7 @@ describe('Tests for Bookmark resources', () => {
 
     it('Should return error if article id is incorrrect', async () => {
       const res = await chai.request(app)
-        .post(`/api/articles/${wrongArticleId}/bookmark`)
+        .post(`/api/bookmarks/?articleId=${wrongArticleId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(500);
@@ -101,7 +101,7 @@ describe('Tests for Bookmark resources', () => {
   describe("Tests for get user's Bookmarks", () => {
     it("Should get user's Bookmarks if request is correct", async () => {
       const res = await chai.request(app)
-        .get(`/api/users/${userId}/bookmarks`)
+        .get(`/api/bookmarks/?userId=${userId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(200);
@@ -111,7 +111,7 @@ describe('Tests for Bookmark resources', () => {
 
     it('Should return fail if no article has been bookmarked by the user', async () => {
       const res = await chai.request(app)
-        .get(`/api/users/${userId2}/bookmarks`)
+        .get(`/api/bookmarks/?userId=${userId2}`)
         .set('Authorization', `Bearer ${token2}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(404);
@@ -121,7 +121,7 @@ describe('Tests for Bookmark resources', () => {
 
     it('Should return error if user id is incorrrect', async () => {
       const res = await chai.request(app)
-        .get(`/api/users/${nonExistingUserId}/bookmarks`)
+        .get(`/api/bookmarks/?userId=${nonExistingUserId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(500);
@@ -133,7 +133,7 @@ describe('Tests for Bookmark resources', () => {
   describe('Tests for delete Article Bookmark', () => {
     it('Should delete article bookmark if request is correct', async () => {
       const res = await chai.request(app)
-        .delete(`/api/articles/${articleId}/bookmark`)
+        .delete(`/api/bookmarks/?articleId=${articleId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(200);
@@ -143,7 +143,7 @@ describe('Tests for Bookmark resources', () => {
 
     it('Should return fail if article has not been bookmarked by the user', async () => {
       const res = await chai.request(app)
-        .delete(`/api/articles/${articleId}/bookmark`)
+        .delete(`/api/bookmarks/?articleId=${articleId}`)
         .set('Authorization', `Bearer ${token}`);
       const { body: { status, message } } = res;
       expect(res).to.have.status(404);

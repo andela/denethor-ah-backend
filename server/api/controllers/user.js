@@ -590,7 +590,7 @@ export const deleteUser = async ({ user: { role }, params: { id } }, res) => {
   }
 };
 
-export const unsubscribeMail = async ({ user: { id } }, res) => {
+export const unsubscribeMail = async ({ params: { id } }, res) => {
   try {
     await User.update(
       { notifications: false },
