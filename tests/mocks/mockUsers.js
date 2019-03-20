@@ -36,3 +36,4 @@ export const user11 = new MockUser('Innocent', 'Grahambel', 'innocent', 'user11@
 export const user12 = new MockUser('Pamela', 'Grahambel', 'pamela', 'user12@example.test', 'secretpassword');
 export const user13 = new MockUser('Bams', 'Gbajigs', 'bams', 'user12@example.test', 'secretpassword');
 export const user14 = new MockUser('Bavbms', 'Gbaggvjigs', 'bamufyfds3', 'usergfc12@example.test', 'secretpassword');
+export const user15 = new MockUser('Bavbm', 'Gbaggvjig', 'bamufys3', 'usergfc@example.test', 'secretpassword');

@@ -359,7 +359,7 @@ export const unfollowUser = async (req, res) => {
 * @param {Object} res - response object
 * @returns {Object} JSON object (JSend format)
 */
-export const resetPasswordVerification = async (req, res) => {
+export const forgotPasswordVerification = async (req, res) => {
   const { body: { email } } = req;
   try {
     const foundUser = await User.findOne({ where: { email: { [Op.eq]: email } } });
@@ -393,7 +393,7 @@ export const resetPasswordVerification = async (req, res) => {
       status: 'success',
       data: {
         message: `A confirmation email has been sent to ${foundUser.email}. Click on the confirmation button to verify the account`,
-        link: `${process.env.REACT_ENDPOINT}/passwordreset#token=${token}`
+        link: `${process.env.REACT_ENDPOINT}/forgotPassword#token=${token}`
       },
     });
   } catch (e) {
@@ -411,7 +411,7 @@ export const resetPasswordVerification = async (req, res) => {
 * @param {Object} res - response object
 * @returns {Object} JSON object (JSend format)
 */
-export const resetPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
   try {
     const { params: { token }, body: { password } } = req;
     const { email } = verifyToken(token);
@@ -458,7 +458,28 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
-
+export const resetPassword = async (req, res) => {
+  try {
+    const { body: { newPassword }, user } = req;
+    const updatedUser = await User.findById(user.id);
+    const hashedPassword = await User.hashPassword(newPassword);
+    await updatedUser.update({
+      password: hashedPassword
+    });
+    return res.status(200).send({
+      status: 'success',
+      data: {
+        user: updatedUser,
+        message: 'Password updated successfully.'
+      }
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Server error.'
+    });
+  }
+};
 export const changeRole = async ({ body: { id, role: proposedRole } }, res) => {
   try {
     const user = await User.update(

@@ -47,9 +47,9 @@ module.exports = {
       type: Sequelize.ARRAY(Sequelize.STRING)
     },
     categoryId: {
-      allowNull: false,
+      allowNull: true,
       type: Sequelize.INTEGER,
-      onDelete: 'CASCADE',
+      onDelete: 'SET NULL',
       references: {
         model: 'Category',
         key: 'id',

@@ -63,6 +63,7 @@ module.exports = {
           type: Sequelize.TEXT,
           defaultValue: 'author',
           onDelete: 'CASCADE',
+          hooks: true,
           references: {
             model: 'Roles',
             key: 'name',

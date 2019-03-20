@@ -36,6 +36,7 @@
             "MethodDefinition": true,
             "ClassDeclaration": true
         }
-    }]
+    }],
+    "brace-style": "off"
   }
 }

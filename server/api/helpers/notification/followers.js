@@ -10,7 +10,7 @@ export default async (authorId, id, title) => {
   });
 
   const notification = {
-    message: `${authorObj.firstname} posted a new article.`,
+    message: `${authorObj.firstname} posted a new article: "${title}".`,
     articleId: id,
     time: moment().format()
   };

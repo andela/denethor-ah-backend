@@ -14,7 +14,7 @@ export default async (articleId, commentBody, commenterId) => {
   const { username: commenter } = await User.findByPk(commenterId);
 
   const notification = {
-    message: `New comment in bookmarked article: '${title}'.`,
+    message: `New comment in bookmarked article: "${title}".`,
     articleId,
     time: moment().format()
   };
