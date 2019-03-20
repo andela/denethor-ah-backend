@@ -20,6 +20,15 @@ const password = Joi.string().trim().strict().alphanum()
   .max(40)
   .required();
 
+const oldPassword = Joi.string().trim().strict().alphanum()
+  .max(40)
+  .required();
+
+const newPassword = Joi.string().trim().strict().alphanum()
+  .min(8)
+  .max(40)
+  .required();
+
 const registrationRequestSchema = {
   firstname,
   lastname,
@@ -58,14 +67,19 @@ const loginRequestSchema = {
   password,
 };
 
-const resetPasswordSchema = {
+const forgotPasswordSchema = {
   email
 };
 
 const changePasswordSchema = {
   password
 };
+const resetPasswordSchema = {
+  oldPassword,
+  newPassword
+};
 
 export {
-  loginRequestSchema, registrationRequestSchema, resetPasswordSchema, changePasswordSchema, profileUpdateSchema
+  loginRequestSchema, registrationRequestSchema, forgotPasswordSchema,
+  changePasswordSchema, profileUpdateSchema, resetPasswordSchema
 };

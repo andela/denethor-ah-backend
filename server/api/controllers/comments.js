@@ -270,23 +270,40 @@ export const likeComment = async (req, res) => {
       }
     } = req;
 
-    await LikeComment.findOrCreate({
+    const commentOwner = await Comment.findOne({
       where: {
-        commentId,
-        userId
+        id: {
+          [Op.eq]: commentId
+        },
+        userId: {
+          [Op.eq]: userId
+        }
       }
-    }).spread((like, created) => {
-      if (created) {
-        return res.status(201).send({
+    });
+
+    if (!commentOwner) {
+      await LikeComment.findOrCreate({
+        where: {
+          commentId,
+          userId
+        }
+      }).spread((like, created) => {
+        if (created) {
+          return res.status(201).send({
+            status: 'success',
+            message: 'You liked this comment!',
+          });
+        }
+        like.destroy();
+        return res.status(200).send({
           status: 'success',
-          message: 'You liked this comment!',
+          message: 'You unliked this comment!'
         });
-      }
-      like.destroy();
-      return res.status(200).send({
-        status: 'success',
-        message: 'You unliked this comment!'
       });
+    }
+    return res.status(400).send({
+      status: 'fail',
+      message: 'You cannot like your own comment'
     });
   } catch (e) {
     return res.status(500).send({
@@ -324,7 +341,8 @@ export const getCommentLikes = async (req, res) => {
 
     return res.status(200).send({
       status: 'success',
-      data: commentLikes.length
+      commentLikes,
+      count: commentLikes.length
     });
   } catch (e) {
     return res.status(500).send({

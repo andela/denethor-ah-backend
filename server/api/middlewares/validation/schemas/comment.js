@@ -2,7 +2,7 @@ import Joi from 'joi';
 
 const articleId = Joi.string().trim().min(1).required();
 const commentId = Joi.string().trim().min(1).required();
-const commentBody = Joi.string().trim().min(1).max(140)
+const commentBody = Joi.string().trim().min(1).max(300)
   .required();
 
 export const newCommentSchema = { commentBody, articleId };

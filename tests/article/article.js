@@ -268,6 +268,7 @@ describe('Tests for article resource', () => {
         expect(status).to.eql('fail');
         expect(message).to.eql('No comment was found');
       });
+
       describe('Tests for get article Comments', () => {
         it('Should get article Comments if request is correct', async () => {
           const res = await chai.request(app)
@@ -301,17 +302,25 @@ describe('Tests for article resource', () => {
       it('Should like comment if request is correct', async () => {
         const res = await chai.request(app)
           .post(`/api/comments/${commentId2}/likes`)
-          .set('Authorization', `Bearer ${userToken}`);
+          .set('Authorization', `Bearer ${userToken4}`);
         const { body: { status, message } } = res;
         expect(res).to.have.status(201);
         expect(status).to.equal('success');
         expect(message).to.equal('You liked this comment!');
       });
-
-      it('Should unlike comment if comment has already been liked by the user', async () => {
+      it('Should like or unlike  user is the owner of the comment', async () => {
         const res = await chai.request(app)
           .post(`/api/comments/${commentId2}/likes`)
           .set('Authorization', `Bearer ${userToken}`);
+        const { body: { status, message } } = res;
+        expect(res).to.have.status(400);
+        expect(status).to.equal('fail');
+        expect(message).to.equal('You cannot like your own comment');
+      });
+      it('Should unlike comment if comment has already been liked by the user', async () => {
+        const res = await chai.request(app)
+          .post(`/api/comments/${commentId2}/likes`)
+          .set('Authorization', `Bearer ${userToken4}`);
         const { body: { status, message } } = res;
         expect(res).to.have.status(200);
         expect(status).to.equal('success');
@@ -332,10 +341,10 @@ describe('Tests for article resource', () => {
       it('Should get comments if request is correct', async () => {
         const res = await chai.request(app)
           .get(`/api/comments/${commentId2}/likes`);
-        const { body: { status, data } } = res;
+        const { body: { status, count } } = res;
         expect(res).to.have.status(200);
         expect(status).to.equal('success');
-        expect(data).to.equal(0);
+        expect(count).to.equal(0);
       });
 
       it('Should return error if comment does not exist', async () => {

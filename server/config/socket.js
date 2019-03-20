@@ -1,3 +1,4 @@
+import moment from 'moment';
 import database from './firebase';
 
 const handleSocket = (socket) => {
@@ -9,13 +10,18 @@ const handleSocket = (socket) => {
       const notifications = [];
 
       snapshots.forEach((snapshot) => {
-        notifications.unshift({ ...snapshot.val() });
+        notifications.push({ ...snapshot.val() });
       });
 
-      const uniqueNotifications = notifications.filter(({
-        message, articleId
-      }, pos, arr) => arr.findIndex(({ message: message2, articleId: articleId2 }) => ((message === message2)
-          && (articleId === articleId2))) === pos);
+      let uniqueNotifications = notifications.filter(({
+        message, articleId, read
+      }, pos, arr) => arr.findIndex(({ message: message2, articleId: articleId2, read: read2 }) => ((message === message2)
+          && (articleId === articleId2)
+          && (read === read2))) === pos);
+
+      uniqueNotifications.sort((a, b) => moment(b.time).valueOf() - moment(a.time).valueOf());
+
+      uniqueNotifications = uniqueNotifications.filter((notification, i) => i < 10);
 
       socket.emit('setNotifications', uniqueNotifications);
     });

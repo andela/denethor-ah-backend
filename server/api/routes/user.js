@@ -2,13 +2,14 @@ import { Router } from 'express';
 import passport from 'passport';
 import {
   registerUser, verifyUser, socialLogin, loginUser, changeRole, listAuthors, unsubscribeMail,
-  logout, followUser, unfollowUser, resetPasswordVerification, resetPassword,
-  getUser, deleteUser, getUserProfile, uploadProfileImage, updateUserProfile
+  logout, followUser, unfollowUser, forgotPasswordVerification, forgotPassword,
+  getUser, deleteUser, getUserProfile, uploadProfileImage, updateUserProfile, resetPassword
 } from '../controllers/user';
 import {
-  registrationValidation, loginValidation, resetPasswordValidation,
+  registrationValidation, loginValidation, emailValidation,
   changePasswordValidation, changeRoleValidation, profileUpdateValidation
 } from '../middlewares/validation/user';
+import passwordChecker from '../helpers/passwordChecker';
 
 const userRouter = Router();
 
@@ -27,8 +28,12 @@ userRouter.get('/facebook/redirect', passport.authenticate('facebook', { session
 userRouter.get('/twitter/redirect', passport.authenticate('twitter', { session: false }), socialLogin);
 
 userRouter.get('/logout', logout);
-userRouter.post('/resetPassword', resetPasswordValidation, resetPasswordVerification);
-userRouter.patch('/resetPassword/:token', changePasswordValidation, resetPassword);
+userRouter.patch('/resetPassword', passport.authenticate(
+  'jwt', { session: false }
+),
+changePasswordValidation, passwordChecker, resetPassword);
+userRouter.post('/forgotPassword', emailValidation, forgotPasswordVerification);
+userRouter.patch('/forgotPassword/:token', changePasswordValidation, forgotPassword);
 
 userRouter.patch('/role', passport.authenticate('jwt', { session: false }), changeRoleValidation, changeRole);
 

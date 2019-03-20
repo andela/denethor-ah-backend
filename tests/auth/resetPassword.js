@@ -2,14 +2,14 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import models, { sequelize } from '../../server/models';
 import app from '../../index';
-import { user4 } from '../mocks/mockUsers';
+import { user4, user15 } from '../mocks/mockUsers';
 import { signToken } from '../../server/api/helpers/tokenization/tokenize';
 import mockRoles from '../mocks/mockRoles';
 
 chai.use(chaiHttp);
 
-describe('Test Cases for Reset Password Endpoint', () => {
-  let userToken, userToken2, expiredToken;
+describe('Test Cases for change Password Endpoint', () => {
+  let userToken, userToken2, expiredToken, user2Token;
   const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6I66iMmU3MDAwLWE3MjEtNDY1OS1hMjRiLTg1M2RlNDk4ZDBjOSIsImVtYWlsIjoicHJpbmNlc3M2M0BleGFtcGxlLmNvbSIsImlhdCI6MTU0OTY1MDgzNywiZXhwIjoxNTQ5NzM3MjM3fQ.1B1I2tlmJzGBdiAmY9R_6tPdRrBXHkdW2wOYUSZ0Gbk';
   const email = 'user4@example.test';
   const email2 = 'user@example.test';
@@ -35,6 +35,18 @@ describe('Test Cases for Reset Password Endpoint', () => {
       .post('/api/users/login')
       .send(user4.logIn);
     userToken = token;
+
+    const { body: { data: { link: link2 } } } = await chai.request(app)
+      .post('/api/users')
+      .send(user15.signUp);
+
+    await chai.request(app)
+      .patch(link2.slice(22));
+
+    const { body: { data: { token: token2 } } } = await chai.request(app)
+      .post('/api/users/login')
+      .send(user15.logIn);
+    user2Token = token2;
   });
 
   after((done) => {
@@ -44,10 +56,10 @@ describe('Test Cases for Reset Password Endpoint', () => {
     sequelize.queryInterface.sequelize.query('TRUNCATE TABLE session CASCADE;').then(() => done());
   });
 
-  describe('Test Cases for Reset Password Verification Endpoint', () => {
+  describe('Test Cases for change Password Verification Endpoint', () => {
     it('should return error with wrong input supplied', async () => {
       const res = await chai.request(app)
-        .post('/api/users/resetPassword/')
+        .post('/api/users/forgotPassword')
         .send({
           email: 'email',
         });
@@ -57,7 +69,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
     it('should succeed when correct input is supplied', async () => {
       await chai.request(app);
       const res = await chai.request(app)
-        .post('/api/users/resetPassword/')
+        .post('/api/users/forgotPassword/')
         .send({
           email: 'user4@example.test',
         });
@@ -66,7 +78,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
 
     it('should return error if user not found', async () => {
       const res = await chai.request(app)
-        .post('/api/users/resetPassword/')
+        .post('/api/users/forgotPassword/')
         .send({
           email: 'user7@example.test',
         });
@@ -80,7 +92,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
   describe('Test Cases for Change Password Endpoint', () => {
     it('should return error with wrong input supplied', async () => {
       const res = await chai.request(app)
-        .patch(`/api/users/resetPassword/${userToken}`)
+        .patch(`/api/users/forgotPassword/${userToken}`)
         .send({
           password: 'pass'
         });
@@ -89,7 +101,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
     });
     it('should reset a user password if the account exists', async () => {
       const res = await chai.request(app)
-        .patch(`/api/users/resetPassword/${userToken}`)
+        .patch(`/api/users/forgotPassword/${userToken}`)
         .send({
           password: 'password'
         });
@@ -101,7 +113,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
 
     it('should return error if user does not exist', async () => {
       const res = await chai.request(app)
-        .patch(`/api/users/resetPassword/${userToken2}`)
+        .patch(`/api/users/forgotPassword/${userToken2}`)
         .send({
           password: 'password'
         });
@@ -112,7 +124,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
     });
     it('should not change password if incorrect token is supplied', async () => {
       const res = await chai.request(app)
-        .patch(`/api/users/resetPassword/${fakeToken}`)
+        .patch(`/api/users/forgotPassword/${fakeToken}`)
         .send({
           password: 'password'
         });
@@ -126,7 +138,7 @@ describe('Test Cases for Reset Password Endpoint', () => {
         .post('/api/users')
         .send(user4.signUp);
       const res = await chai.request(app)
-        .patch(`/api/users/resetPassword/${expiredToken}`)
+        .patch(`/api/users/forgotPassword/${expiredToken}`)
         .send({
           password: 'password'
         });
@@ -135,6 +147,58 @@ describe('Test Cases for Reset Password Endpoint', () => {
       expect(res).to.have.status(401);
       expect(status).to.equal('fail');
       expect(message).to.equal('Link has expired. Kindly re-initiate password change.');
+    });
+  });
+  describe('Test Cases for Reset Password Endpoint', () => {
+    it('should return error with wrong input supplied', async () => {
+      const res = await chai.request(app)
+        .patch('/api/users/resetPassword/')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          Oldpassword: 'pass'
+        });
+      expect(res).to.have.status(422);
+      expect(res.body.status).to.equal('fail');
+    });
+
+    it('should return error if old password supplied is incorrect', async () => {
+      const res = await chai.request(app)
+        .patch('/api/users/resetPassword/')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          oldPassword: 'secretpasswo',
+          newPassword: 'secretpassword'
+        });
+      expect(res).to.have.status(403);
+      expect(res.body.status).to.equal('fail');
+      expect(res.body.message).to.have.equal('The old password you have entered is incorrect');
+    });
+
+    it('should reset a user password if the account exists', async () => {
+      const res = await chai.request(app)
+        .patch('/api/users/resetPassword/')
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({
+          oldPassword: 'secretpassword',
+          newPassword: 'secretpassword'
+        });
+      const { body: { data } } = res;
+      expect(res).to.have.status(200);
+      expect(res.body.status).to.equal('success');
+      expect(data.message).to.have.equal('Password updated successfully.');
+    });
+
+    it('should not change password if incorrect token is supplied', async () => {
+      const res = await chai.request(app)
+        .patch('/api/users/resetPassword/')
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({
+          password: 'password'
+        });
+      const { status, message } = res.body;
+      expect(res).to.have.status(500);
+      expect(status).to.equal('error');
+      expect(message).to.equal('Server error.');
     });
   });
 });

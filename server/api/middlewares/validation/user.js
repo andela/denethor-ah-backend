@@ -1,7 +1,8 @@
 import Joi from 'joi';
 import {
-  registrationRequestSchema, loginRequestSchema, resetPasswordSchema, changePasswordSchema,
-  profileUpdateSchema
+  registrationRequestSchema, loginRequestSchema,
+  forgotPasswordSchema, changePasswordSchema,
+  profileUpdateSchema, resetPasswordSchema
 } from './schemas/user';
 
 /**
@@ -50,8 +51,8 @@ export const loginValidation = (req, res, next) => {
 * @param {Object} next - next object
 * @returns {Object} next object
 */
-export const resetPasswordValidation = (req, res, next) => {
-  Joi.validate(req.body, resetPasswordSchema)
+export const emailValidation = ({ body }, res, next) => {
+  Joi.validate(body, forgotPasswordSchema)
     .then(() => next())
     .catch(error => res.status(422).send({
       status: 'fail',
@@ -69,8 +70,15 @@ export const resetPasswordValidation = (req, res, next) => {
 * @param {Object} next - next object
 * @returns {Object} next object
 */
-export const changePasswordValidation = (req, res, next) => {
-  Joi.validate(req.body, changePasswordSchema)
+export const changePasswordValidation = ({ body }, res, next) => {
+  let passwordSchema;
+  if (body.oldPassword || body.newPassword) {
+    passwordSchema = resetPasswordSchema;
+  }
+  else {
+    passwordSchema = changePasswordSchema;
+  }
+  Joi.validate(body, passwordSchema)
     .then(() => next())
     .catch(error => res.status(422).send({
       status: 'fail',
