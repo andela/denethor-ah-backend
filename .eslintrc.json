@@ -21,6 +21,7 @@
     "func-names": 0,
     "max-len":"off",
     "import/named": 0,
+    "import/no-cycle": 0,
     "arrow-body-style": 0,
     "no-shadow": ["error", { "allow": ["req", "res", "err"] }],
     "valid-jsdoc": ["error", {
