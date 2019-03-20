@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import sinon from 'sinon';
 import app from '../../index';
-import models, { sequelize, Article, Tag } from '../../server/models';
+import models, { sequelize, Article } from '../../server/models';
 import {
   user1, user2, user3, user5, user6, user8, user9
 } from '../mocks/mockUsers';
@@ -300,7 +300,7 @@ describe('Tests for article resource', () => {
     describe('Tests for like comment', () => {
       it('Should like comment if request is correct', async () => {
         const res = await chai.request(app)
-          .post(`/api/articles/${articleId}/comments/${commentId2}/like`)
+          .post(`/api/comments/${commentId2}/likes`)
           .set('Authorization', `Bearer ${userToken}`);
         const { body: { status, message } } = res;
         expect(res).to.have.status(201);
@@ -310,7 +310,7 @@ describe('Tests for article resource', () => {
 
       it('Should unlike comment if comment has already been liked by the user', async () => {
         const res = await chai.request(app)
-          .post(`/api/articles/${articleId}/comments/${commentId2}/like`)
+          .post(`/api/comments/${commentId2}/likes`)
           .set('Authorization', `Bearer ${userToken}`);
         const { body: { status, message } } = res;
         expect(res).to.have.status(200);
@@ -320,12 +320,40 @@ describe('Tests for article resource', () => {
 
       it('Should return error if comment id is incorrrect', async () => {
         const res = await chai.request(app)
-          .post(`/api/articles/${articleId}/comments/${fakeCommentId}/like`)
+          .post(`/api/comments/${fakeCommentId}/likes`)
           .set('Authorization', `Bearer ${userToken}`);
         const { body: { status, message } } = res;
         expect(res).to.have.status(500);
         expect(status).to.equal('error');
         expect(message).to.equal('Internal Server error occured');
+      });
+    });
+    describe('Tests for retreiving comment likes', () => {
+      it('Should get comments if request is correct', async () => {
+        const res = await chai.request(app)
+          .get(`/api/comments/${commentId2}/likes`);
+        const { body: { status, data } } = res;
+        expect(res).to.have.status(200);
+        expect(status).to.equal('success');
+        expect(data).to.equal(0);
+      });
+
+      it('Should return error if comment does not exist', async () => {
+        const res = await chai.request(app)
+          .get(`/api/comments/${fakeUUIDCommentId}/likes`);
+        const { body: { status, message } } = res;
+        expect(res).to.have.status(404);
+        expect(status).to.equal('fail');
+        expect(message).to.equal('Commment not found');
+      });
+
+      it('Should return error if comment id is invalid', async () => {
+        const res = await chai.request(app)
+          .get(`/api/comments/${fakeCommentId}/likes`);
+        const { body: { status, message } } = res;
+        expect(res).to.have.status(500);
+        expect(status).to.equal('error');
+        expect(message).to.equal('Internal Server error');
       });
     });
   });

@@ -9,7 +9,7 @@ import {
 } from '../controllers/article';
 import { reportArticle } from '../controllers/reports';
 import { shareArticle } from '../controllers/shares';
-import commentsRouter from './comment';
+import { commentsRouter } from './comment';
 import highlightRouter from './highlight';
 
 const articlesRouter = Router();

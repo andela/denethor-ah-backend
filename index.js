@@ -12,6 +12,7 @@ import auth from './server/api/middlewares/authentication/authenticate';
 import userRoute from './server/api/routes/user';
 import articleRoute from './server/api/routes/article';
 import bookmarkRoutes from './server/api/routes/bookmark';
+import { commentRoutes } from './server/api/routes/comment';
 import tagsRoute from './server/api/routes/tags';
 import handleSocket from './server/config/socket';
 
@@ -43,6 +44,7 @@ app.use('/api/articles', articleRoute);
 app.use('/api/tags', tagsRoute);
 app.use('/docs', swagger.serve, swagger.setup(swaggerDocument));
 app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/comments', commentRoutes);
 
 app.get('/', (req, res) => res.status(200).send({
   status: 'connection successful',
