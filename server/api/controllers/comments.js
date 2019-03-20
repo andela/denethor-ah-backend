@@ -295,3 +295,41 @@ export const likeComment = async (req, res) => {
     });
   }
 };
+
+
+/**
+ * @export
+ * @function getCommentLikes
+ * @param {Object} req - request received
+ * @param {Object} res - response object
+ * @returns {Object} JSON object (JSend format)
+ */
+export const getCommentLikes = async (req, res) => {
+  const {
+    params: {
+      commentId
+    }
+  } = req;
+  try {
+    const foundComment = await Comment.findByPk(commentId);
+
+    if (!foundComment) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'Commment not found'
+      });
+    }
+
+    const commentLikes = await foundComment.getCommentLikes();
+
+    return res.status(200).send({
+      status: 'success',
+      data: commentLikes.length
+    });
+  } catch (e) {
+    return res.status(500).send({
+      status: 'error',
+      message: 'Internal Server error'
+    });
+  }
+};

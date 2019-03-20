@@ -2,10 +2,11 @@ import { Router } from 'express';
 import passport from 'passport';
 import { newCommentValidator, deleteCommentValidator } from '../middlewares/validation/comment';
 import {
-  postComment, getArticleComments, updateComment, deleteComment, likeComment
+  postComment, getArticleComments, updateComment, deleteComment, likeComment, getCommentLikes
 } from '../controllers/comments';
 
 const commentsRouter = Router({ mergeParams: true });
+const commentRoutes = Router();
 
 commentsRouter.post('/', passport.authenticate('jwt', { session: false }), newCommentValidator, postComment);
 commentsRouter.get('/', getArticleComments);
@@ -15,6 +16,7 @@ commentsRouter.patch('/:commentId', passport.authenticate('jwt', { session: fals
 commentsRouter.delete('/:commentId', passport.authenticate('jwt', { session: false }),
   deleteCommentValidator,
   deleteComment);
-commentsRouter.post('/:commentId/like', passport.authenticate('jwt', { session: false }), likeComment);
+commentRoutes.post('/:commentId/likes', passport.authenticate('jwt', { session: false }), likeComment);
+commentRoutes.get('/:commentId/likes', getCommentLikes);
 
-export default commentsRouter;
+export { commentsRouter, commentRoutes };
