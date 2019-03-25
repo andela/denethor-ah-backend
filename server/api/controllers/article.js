@@ -418,7 +418,7 @@ export const getAllArticles = async ({ query: { n = 0, category } }, res) => {
     queryObj.where = { categoryId: { [Op.eq]: categoryId } };
   }
   try {
-    const articles = await Article.findAll(queryObj);
+    const { rows: articles, count } = await Article.findAndCountAll(queryObj);
     const allArticles = articles.map((article) => {
       article = article.toJSON();
       article.readTime = getReadTime(article.body);
@@ -427,7 +427,8 @@ export const getAllArticles = async ({ query: { n = 0, category } }, res) => {
 
     return res.status(200).send({
       status: 'success',
-      data: allArticles
+      data: allArticles,
+      count
     });
   } catch (err) {
     return res.status(500).send({
