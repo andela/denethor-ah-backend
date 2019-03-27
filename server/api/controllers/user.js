@@ -658,6 +658,40 @@ export const getUserProfile = async (req, res) => {
 
   userData.publishedArticles = await user.getUserArticles();
 
+  const publishedArticlesWithRating = userData.publishedArticles.map(async (article) => {
+    const ratings = await article.getArticleRatings();
+    return { ...article.toJSON(), ratings };
+  });
+
+  userData.publishedArticles = await Promise.all(publishedArticlesWithRating);
+
+  const userAverageRating = userData.publishedArticles.reduce((accumulatorObject, { ratings }, index, { length }) => {
+    const { totalArticlesWithRating, totalRating, ratingCount } = accumulatorObject;
+
+    const count = ratings.length;
+
+    const averageRating = ratings.reduce((average, { rating }) => average + rating / (count > 0 ? count : 1), 0);
+
+    const articleHasRating = count > 0 ? 1 : 0;
+    const articlesWithRating = totalArticlesWithRating + articleHasRating;
+    const currentCount = ratingCount + count;
+    const currentRating = Number(averageRating) + totalRating;
+
+    return {
+      ...((index === length - 1 && articlesWithRating > 0)
+        && { averageRating: Math.round(currentRating / articlesWithRating) }),
+      totalArticlesWithRating: articlesWithRating,
+      totalRating: currentRating,
+      ratingCount: currentCount
+    };
+  }, ({
+    totalArticlesWithRating: 0,
+    totalRating: 0,
+    ratingCount: 0
+  }));
+
+  userData.ratingInfo = userAverageRating;
+
   return res.status(200).send({
     status: 'success',
     data: userData

@@ -6,7 +6,8 @@ import {
   User,
   Article,
   LikeComment,
-  Sequelize
+  Sequelize,
+  CommentHistory
 } from '../../models';
 
 import informBookmarkers from '../helpers/notification/bookmarkers';
@@ -74,18 +75,18 @@ export const getArticleComments = async (req, res) => {
   } = req;
   try {
     const allComments = await Comment.findAll({
-      attributes: {
-        exclude: ['id', 'articleId'
-        ]
-      },
       where: {
         articleId: {
           [Op.eq]: articleId
         }
       },
       order: [
-        ['updatedAt', 'DESC']
-      ]
+        ['createdAt', 'DESC']
+      ],
+      include: [{
+        model: CommentHistory,
+        as: 'commentHistories'
+      }]
     });
     if (!allComments.length) {
       return res.status(404).send({
@@ -96,8 +97,8 @@ export const getArticleComments = async (req, res) => {
     let articleComments = allComments.map(async (comment) => {
       const user = await User.findById(comment.userId, {
         attributes: {
-          exclude: ['id', 'username', 'email', 'password',
-            'role', 'bio', 'imageUrl', 'verified', 'createdAt', 'updatedAt', 'notifications', 'isVerified'
+          exclude: [
+            'email', 'password', 'role', 'bio', 'notifications', 'isVerified', 'createdAt', 'updatedAt'
           ]
         },
       });

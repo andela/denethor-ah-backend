@@ -3,7 +3,7 @@ import { createLogger, format, transports } from 'winston';
 import { omit } from 'lodash';
 import notifyFollowers from '../helpers/notification/followers';
 import {
-  User, Article, LikeDislike, Tag, Rating, Category, Comment
+  User, Article, LikeDislike, Tag, Rating, Category, Comment, CommentHistory
 } from '../../models';
 import {
   getArticlesByAllParams, getArticlesBySearchTagParams, getArticlesBySearchAuthorParams,
@@ -398,6 +398,9 @@ export const getAllArticles = async ({ query: { n = 0, category } }, res) => {
       model: User,
       as: 'author',
       attributes: ['username', 'imageUrl']
+    }, {
+      model: Rating,
+      as: 'articleRatings'
     }],
     limit,
     offset
@@ -488,6 +491,9 @@ export const getArticle = async (req, res) => {
         model: User,
         as: 'author',
         attributes: ['firstname', 'lastname', 'username', 'imageUrl']
+      }, {
+        model: Rating,
+        as: 'articleRatings'
       }]
     });
 
@@ -499,14 +505,18 @@ export const getArticle = async (req, res) => {
     }
     const comments = await Comment.findAll({
       where: { articleId: { [Op.eq]: foundArticle.id } },
-      order: [['updatedAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      include: [{
+        model: CommentHistory,
+        as: 'commentHistories'
+      }]
     });
 
     let articleComments = comments.map(async (comment) => {
       const user = await User.findById(comment.userId, {
         attributes: {
-          exclude: ['id', 'username', 'email', 'password',
-            'role', 'bio', 'imageUrl', 'verified', 'createdAt', 'updatedAt']
+          exclude: ['email', 'password',
+            'role', 'bio', 'notifications', 'isVerified', 'createdAt', 'updatedAt']
         },
       });
 
