@@ -516,10 +516,12 @@ export const getArticle = async (req, res) => {
     });
 
     articleComments = await Promise.all(articleComments);
+    const articleTags = await foundArticle.getTags();
 
     foundArticle = foundArticle.toJSON();
     foundArticle.readTime = getReadTime(foundArticle.body);
     foundArticle.comments = articleComments;
+    foundArticle.tags = articleTags;
 
     return res.status(200).send({
       status: 'success',
