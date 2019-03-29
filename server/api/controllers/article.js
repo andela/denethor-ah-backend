@@ -10,7 +10,7 @@ import {
   getArticlesByTagAuthorParams, getArticlesBySearchParam, getArticlesByTagParam,
   getArticlesByAuthorParam
 } from '../helpers/search';
-
+import database from '../../config/firebase';
 import getReadTime from '../helpers/getReadTime';
 
 const { Op } = Sequelize;
@@ -503,6 +503,19 @@ export const getArticle = async (req, res) => {
         message: 'Resource not found'
       });
     }
+
+    let readCount;
+
+    const snapshot = await database.ref(`stats/${foundArticle.id}`).once('value');
+    const existingReadCount = snapshot.val();
+    if (existingReadCount) {
+      await database.ref(`stats/${foundArticle.id}`).set(existingReadCount + 1);
+      readCount = existingReadCount + 1;
+    } else {
+      await database.ref(`stats/${foundArticle.id}`).set(1);
+      readCount = 1;
+    }
+
     const comments = await Comment.findAll({
       where: { articleId: { [Op.eq]: foundArticle.id } },
       order: [['createdAt', 'DESC']],
@@ -532,6 +545,7 @@ export const getArticle = async (req, res) => {
     foundArticle.readTime = getReadTime(foundArticle.body);
     foundArticle.comments = articleComments;
     foundArticle.tags = articleTags;
+    foundArticle.readCount = readCount;
 
     return res.status(200).send({
       status: 'success',
